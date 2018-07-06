@@ -43,7 +43,7 @@ void Interpreter::SetOperand(const Operand &op, Immediate value) {
     temporaries_[absl::get<Temporary>(op).index] = value;
   } else {
     // unreachable
-    abort():
+    abort();
   }
 }
 
