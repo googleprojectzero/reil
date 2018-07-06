@@ -84,12 +84,7 @@ void Interpreter::Ldm(const Instruction &ri) {
   Immediate a = GetOperand(ri.input0);
   uint64_t address = static_cast<uint64_t>(a);
   std::vector<uint8_t> bytes = GetMemory(address, Size(ri.output) / 8);
-  if (bytes.size() != Size(ri.output) / 8) {
-    // TODO: something more sensible here.
-    SetOperand(ri.output, Immediate(Size(ri.output), 0));
-  } else {
-    SetOperand(ri.output, Immediate(bytes));
-  }
+  SetOperand(ri.output, Immediate(bytes));
 }
 
 void Interpreter::Mod(const Instruction &ri) {
@@ -357,12 +352,8 @@ void Interpreter::SetRegister(uint32_t index, Immediate value) {
 
 std::vector<uint8_t> Interpreter::GetMemory(uint64_t address, size_t size) {
   std::vector<uint8_t> bytes;
-  try {
-    for (size_t i = 0; i < size; ++i) {
-      bytes.push_back(memory_.at(address + i));
-    }
-  } catch (const std::exception &) {
-    // this will occur if we read uninitialised memory.
+  for (size_t i = 0; i < size; ++i) {
+    bytes.push_back(memory_[address + i]);
   }
   return bytes;
 }
