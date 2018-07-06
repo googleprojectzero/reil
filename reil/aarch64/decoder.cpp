@@ -85,10 +85,11 @@ static std::tuple<uint64_t, uint64_t> decode_bit_masks(uint64_t immN,
   // TODO: validation for valid values?
 
   uint64_t welement = 0xffffffffffffffffull >> (64 - (s + 1));
-  uint64_t welement_left = (welement << (element_size - r)) & element_mask;
-  uint64_t welement_right = welement >> r;
-  welement = welement_left | welement_right;
-
+  if (r != 0) {
+    uint64_t welement_left = (welement << (element_size - r)) & element_mask;
+    uint64_t welement_right = welement >> r;
+    welement = welement_left | welement_right;
+  }
   uint64_t telement = 0xffffffffffffffffull >> (64 - (d + 1));
 
   // always replicate to 64-bits and truncate later.
