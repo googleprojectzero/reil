@@ -30,6 +30,9 @@ Immediate Interpreter::GetOperand(const Operand &op) const {
     return registers_.at(absl::get<Register>(op).index);
   } else if (absl::holds_alternative<Temporary>(op)) {
     return temporaries_.at(absl::get<Temporary>(op).index);
+  } else {
+    // unreachable
+    abort();
   }
 }
 
@@ -38,6 +41,9 @@ void Interpreter::SetOperand(const Operand &op, Immediate value) {
     registers_[absl::get<Register>(op).index] = value;
   } else if (absl::holds_alternative<Temporary>(op)) {
     temporaries_[absl::get<Temporary>(op).index] = value;
+  } else {
+    // unreachable
+    abort():
   }
 }
 
