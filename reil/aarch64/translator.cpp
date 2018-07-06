@@ -409,6 +409,9 @@ Operand Translation::CountLeadingZeroBits(Operand value) {
       Jcc(tmp1, label);
     }
 
+    Str(Imm16(size), result);
+    Jcc(Imm8(1), done);
+
     for (int16_t i = size - 1; i >= 0; --i) {
       Nop(labels[i]);
       Str(Imm16(i), result);

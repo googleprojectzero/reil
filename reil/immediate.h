@@ -28,7 +28,7 @@ class Immediate {
  public:
   Immediate();
 
-  Immediate(uint16_t size, uint64_t value = 0);
+  explicit Immediate(uint16_t size, uint64_t value = 0);
   Immediate(uint16_t size, const Immediate &value);
   Immediate(const std::vector<uint8_t> &bytes);
   Immediate(const uint8_t *bytes, size_t bytes_len);

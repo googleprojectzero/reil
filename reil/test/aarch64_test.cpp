@@ -188,22 +188,12 @@ void Check(aarch64::Emulator &reil_emu, AArch64UnicornEmulator &unicorn_emu) {
   }
 }
 
-void AArch64Test(uint32_t instruction_count, std::vector<uint8_t> bytes,
-                 uint64_t x0 = 0, uint64_t x1 = 0, uint64_t x2 = 0,
-                 uint64_t x3 = 0) {
-  if (!x0) {
-    x0 = prng();
-  }
-  if (!x1) {
-    x1 = prng();
-  }
-  if (!x2) {
-    x2 = prng();
-  }
-  if (!x3) {
-    x3 = prng();
-  }
-
+void AArch64Test(uint32_t instruction_count, std::vector<uint8_t> bytes, 
+                 bool can_fail = false) {
+  uint64_t x0 = prng();
+  uint64_t x1 = prng();
+  uint64_t x2 = prng();
+  uint64_t x3 = prng();
   uint8_t nzcv = prng();
 
   bytes.reserve(0x1000);
@@ -261,7 +251,14 @@ void AArch64Test(uint32_t instruction_count, std::vector<uint8_t> bytes,
   reil_min_emu.SetRegister(aarch64::kPc, Imm64(0x1000));
 
   for (uint32_t j = 0; j < instruction_count; ++j) {
-    ASSERT_TRUE(unicorn_emu.SingleStep());
+    if (can_fail) {
+      if (!unicorn_emu.SingleStep()) {
+        return;
+      }
+    } else {
+      ASSERT_TRUE(unicorn_emu.SingleStep());
+    }
+
     ASSERT_TRUE(reil_emu.SingleStep());
     ASSERT_TRUE(reil_min_emu.SingleStep());
 
@@ -273,6 +270,20 @@ void AArch64Test(uint32_t instruction_count, std::vector<uint8_t> bytes,
 #define AARCH64_TEST(test_name, instruction_count, ...) \
   TEST(AArch64Translator, test_name) {                  \
     AArch64Test(instruction_count, __VA_ARGS__);        \
+  }
+
+#define AARCH64_RANDOM_TEST(test_name, base, mask) \
+  TEST(AArch64Translator, Random ## test_name) {   \
+    std::vector<uint8_t> bytes(32);                \
+    for (int i = 0; i < 8; ++i) {                  \
+      uint32_t rndm = (uint32_t)prng();            \
+      uint32_t insn = base | (mask & rndm);        \
+      bytes[(i * 4) + 3] = (insn >> 24) & 0xff;    \
+      bytes[(i * 4) + 2] = (insn >> 16) & 0xff;    \
+      bytes[(i * 4) + 1] = (insn >> 8) & 0xff;     \
+      bytes[(i * 4) + 0] = insn & 0xff;            \
+    }                                              \
+    AArch64Test(128, bytes, true);                 \
   }
 
 AARCH64_TEST(Adr, 1,
@@ -1491,8 +1502,11 @@ AARCH64_TEST(Rev, 2,
                  0x01, 0x08, 0xc0, 0x5a,  // rev  w1, w0
              })
 
-AARCH64_TEST(Clz, 2,
+AARCH64_TEST(Clz, 5,
              {
+                 0x01, 0x10, 0xc0, 0xda,  // clz  x1, x0
+                 0x01, 0x10, 0xc0, 0x5a,  // clz  w1, w0
+                 0xe0, 0x03, 0x1f, 0xaa,  // mov  x0, xzr
                  0x01, 0x10, 0xc0, 0xda,  // clz  x1, x0
                  0x01, 0x10, 0xc0, 0x5a,  // clz  w1, w0
              })
@@ -1879,6 +1893,15 @@ AARCH64_TEST(CmpExtendedRegister, 16,
                  0x3f, 0xcc, 0x20, 0xeb,  // cmp  x1, w0, sxtw #3
                  0x3f, 0xec, 0x20, 0xeb,  // cmp  x1, x0, sxtx #3
              })
+
+AARCH64_RANDOM_TEST(Movn, 0b00010010100000000000000000000000,
+                          0b10000000011111111111111111100000)
+
+AARCH64_RANDOM_TEST(Movz, 0b01010010100000000000000000000000,
+                          0b10000000011111111111111111100000)
+
+AARCH64_RANDOM_TEST(Movk, 0b01110010100000000000000000000000,
+                          0b10000000011111111111111111100000)
 }  // namespace test
 }  // namespace reil
 

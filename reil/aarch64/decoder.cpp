@@ -72,7 +72,7 @@ static std::tuple<uint64_t, uint64_t> decode_bit_masks(uint64_t immN,
     element_mask = 0xffffffffffffffffull;
   } else {
     element_size = 32;
-    while (element_size && !(element_size & (~imms))) {
+    while (element_size >= 2 && !(element_size & (~imms))) {
       element_size >>= 1;
     }
     element_mask = (1ull << element_size) - 1;
@@ -234,7 +234,10 @@ static Instruction DecodeMoveWideImmediate(uint32_t opcode) {
   Instruction insn;
   uint8_t size = 32 << bit(opcode, 31);
 
-  // TODO: validation on shift count and the opcode 0b01
+  // check that the shift value is in range
+  if (bits(opcode, 21, 22) << 4 >= size) {
+    return UnallocatedEncoding();
+  }
 
   switch (bits(opcode, 29, 30)) {
     case 0b00: {
