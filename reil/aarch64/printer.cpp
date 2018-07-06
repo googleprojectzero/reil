@@ -25,7 +25,7 @@ static void PrintImmediate(std::ostream& stream, const Immediate& opnd) {
 }
 
 static void PrintSignedImmediate(std::ostream& stream, const Immediate& opnd) {
-  if (opnd.value & 1 << (opnd.size - 1)) {
+  if (opnd.value & (1ull << (opnd.size - 1))) {
     stream << "#-0x" << std::hex << (~opnd.value) + 1;
   } else {
     stream << "#0x" << std::hex << opnd.value;
