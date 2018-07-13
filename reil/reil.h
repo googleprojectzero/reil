@@ -67,7 +67,7 @@ enum OperandType {
 struct Offset {
   uint16_t offset;
 
-  Offset(uint16_t);
+  Offset(uint16_t offset);
 };
 
 struct Register {
@@ -75,20 +75,20 @@ struct Register {
   uint8_t index;
   std::string name;
 
-  Register(uint16_t size_, uint8_t index_, std::string name_);
+  Register(uint16_t size, uint8_t index, const std::string& name);
 };
 
 struct Temporary {
   uint16_t size;
   uint16_t index;
 
-  Temporary(uint16_t size_, uint16_t index_);
+  Temporary(uint16_t size, uint16_t index);
 };
 
 struct Label {
   uint8_t index;
 
-  Label(uint8_t index_);
+  Label(uint8_t index);
 };
 
 typedef absl::variant<int, Immediate, Offset, Register, Temporary, Label>
@@ -114,33 +114,48 @@ struct NativeInstruction {
   std::vector<Instruction> reil;
 };
 
-Instruction Add(Operand input0, Operand input1, Operand output);
-Instruction And(Operand input0, Operand input1, Operand output);
-Instruction Bisz(Operand input0, Operand output);
-Instruction Bsh(Operand input0, Operand input1, Operand output);
-Instruction Div(Operand input0, Operand input1, Operand output);
-Instruction Jcc(Operand input0, Operand output);
-Instruction JccHint(Operand input0, Operand input1, Operand output);
-Instruction Ldm(Operand input0, Operand output);
-Instruction Mod(Operand input0, Operand input1, Operand output);
-Instruction Mul(Operand input0, Operand input1, Operand output);
+Instruction Add(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction And(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Bisz(const Operand& input0, const Operand& output);
+Instruction Bsh(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Div(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Jcc(const Operand& input0, const Operand& output);
+Instruction JccHint(const Operand& input0, const Operand& input1,
+                    const Operand& output);
+Instruction Ldm(const Operand& input0, const Operand& output);
+Instruction Mod(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Mul(const Operand& input0, const Operand& input1,
+                const Operand& output);
 Instruction Nop();
-Instruction Nop(Operand input0);
-Instruction Or(Operand input0, Operand input1, Operand output);
-Instruction Stm(Operand input0, Operand output);
-Instruction Str(Operand input0, Operand output);
-Instruction Sub(Operand input0, Operand input1, Operand output);
-Instruction Undef(Operand output);
+Instruction Nop(const Operand& input0);
+Instruction Or(const Operand& input0, const Operand& input1,
+               const Operand& output);
+Instruction Stm(const Operand& input0, const Operand& output);
+Instruction Str(const Operand& input0, const Operand& output);
+Instruction Sub(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Undef(const Operand& output);
 Instruction Unkn();
-Instruction Xor(Operand input0, Operand input1, Operand output);
-Instruction Bisnz(Operand input0, Operand output);
-Instruction Equ(Operand input0, Operand input1, Operand output);
-Instruction Lshl(Operand input0, Operand input1, Operand output);
-Instruction Lshr(Operand input0, Operand input1, Operand output);
-Instruction Ashr(Operand input0, Operand input1, Operand output);
-Instruction Sex(Operand input0, Operand output);
-Instruction Sys(Operand input0);
-Instruction Ite(Operand input0, Operand input1, Operand input2, Operand output);
+Instruction Xor(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Bisnz(const Operand& input0, const Operand& output);
+Instruction Equ(const Operand& input0, const Operand& input1,
+                const Operand& output);
+Instruction Lshl(const Operand& input0, const Operand& input1,
+                 const Operand& output);
+Instruction Lshr(const Operand& input0, const Operand& input1,
+                 const Operand& output);
+Instruction Ashr(const Operand& input0, const Operand& input1,
+                 const Operand& output);
+Instruction Sex(const Operand& input0, const Operand& output);
+Instruction Sys(const Operand& input0);
+Instruction Ite(const Operand& input0, const Operand& input1,
+                const Operand& input2, const Operand& output);
 
 inline Immediate Imm(uint16_t size, uint64_t value) {
   return Immediate(size, value);
@@ -154,7 +169,7 @@ inline Immediate Imm32(uint64_t value) { return Immediate(32, value); }
 
 inline Immediate Imm64(uint64_t value) { return Immediate(64, value); }
 
-inline uint16_t Size(const Operand &operand) {
+inline uint16_t Size(const Operand& operand) {
   switch (operand.index()) {
     case kImmediate:
       return absl::get<Immediate>(operand).size();
@@ -169,9 +184,9 @@ inline uint16_t Size(const Operand &operand) {
   return 0;
 }
 
-std::ostream &operator<<(std::ostream &stream, Operand operand);
-std::ostream &operator<<(std::ostream &stream, Instruction instruction);
-std::ostream &operator<<(std::ostream &stream, NativeInstruction instruction);
+std::ostream& operator<<(std::ostream& stream, const Operand& opnd);
+std::ostream& operator<<(std::ostream& stream, const Instruction& ri);
+std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni);
 }  // namespace reil
 
 #define REIL_REIL_H_

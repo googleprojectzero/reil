@@ -45,67 +45,85 @@ class Translation {
 
   // actual REIL instructions - depending on flags, some of these will be
   // translated to multiple instructions.
-  Operand Add(Operand input0, Operand input1, Operand output);
-  Operand And(Operand input0, Operand input1, Operand output);
-  Operand Bisz(Operand input0, Operand output);
-  Operand Bsh(Operand input0, Operand input1, Operand output);
-  Operand Div(Operand input0, Operand input1, Operand output);
-  Operand Sdiv(Operand input0, Operand input1, Operand output);
-  void Jcc(Operand input0, Operand output);
-  void JccHint(Operand input0, Operand input1, Operand output);
-  void Jump(Operand input0, Operand output);
-  void Jump(Operand output);
-  void Call(Operand output);
-  void Return(Operand output);
-  Operand Ldm(Operand input0, Operand output);
-  Operand Mod(Operand input0, Operand input1, Operand output);
-  Operand Mul(Operand input0, Operand input1, Operand output);
-  Operand Smul(Operand input0, Operand input1, Operand output);
+  Operand Add(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand And(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Bisz(const Operand& input0, const Operand& output);
+  Operand Bsh(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Div(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Sdiv(const Operand& input0, const Operand& input1,
+               const Operand& output);
+  void Jcc(const Operand& input0, const Operand& output);
+  void JccHint(const Operand& input0, const Operand& input1,
+               const Operand& output);
+  void Jump(const Operand& input0, const Operand& output);
+  void Jump(const Operand& output);
+  void Call(const Operand& output);
+  void Return(const Operand& output);
+  Operand Ldm(const Operand& input0, const Operand& output);
+  Operand Mod(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Mul(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Smul(const Operand& input0, const Operand& input1,
+               const Operand& output);
   void Nop();
-  Operand Nop(Operand input0);
-  Operand Not(Operand input0, Operand output);
-  Operand Or(Operand input0, Operand input1, Operand output);
-  Operand Stm(Operand input0, Operand output);
-  Operand Str(Operand input0, Operand output);
-  Operand Sub(Operand input0, Operand input1, Operand output);
-  void Undef(Operand output);
+  Operand Nop(const Operand& input0);
+  Operand Not(const Operand& input0, const Operand& output);
+  Operand Or(const Operand& input0, const Operand& input1,
+             const Operand& output);
+  Operand Stm(const Operand& input0, const Operand& output);
+  Operand Str(const Operand& input0, const Operand& output);
+  Operand Sub(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  void Undef(const Operand& output);
   void Unkn();
-  Operand Xor(Operand input0, Operand input1, Operand output);
-  Operand Bisnz(Operand input0, Operand output);
-  Operand Equ(Operand input0, Operand input1, Operand output);
-  Operand Lshl(Operand input0, Operand input1, Operand output);
-  Operand Lshr(Operand input0, Operand input1, Operand output);
-  Operand Ashr(Operand input0, Operand input1, Operand output);
-  Operand Sex(Operand input0, Operand output);
-  void Sys(Operand input0);
-  Operand Ite(Operand input0, Operand input1, Operand input2, Operand output);
+  Operand Xor(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Bisnz(const Operand& input0, const Operand& output);
+  Operand Equ(const Operand& input0, const Operand& input1,
+              const Operand& output);
+  Operand Lshl(const Operand& input0, const Operand& input1,
+               const Operand& output);
+  Operand Lshr(const Operand& input0, const Operand& input1,
+               const Operand& output);
+  Operand Ashr(const Operand& input0, const Operand& input1,
+               const Operand& output);
+  Operand Sex(const Operand& input0, const Operand& output);
+  void Sys(const Operand& input0);
+  Operand Ite(const Operand& input0, const Operand& input1,
+              const Operand& input2, const Operand& output);
 
   // assigns result to a new temporary of input size * 2
-  Operand Add(Operand input0, Operand input1);
-  Operand Mul(Operand input0, Operand input1);
-  Operand Smul(Operand input0, Operand input1);
-  Operand Sub(Operand input0, Operand input1);
+  Operand Add(const Operand& input0, const Operand& input1);
+  Operand Mul(const Operand& input0, const Operand& input1);
+  Operand Smul(const Operand& input0, const Operand& input1);
+  Operand Sub(const Operand& input0, const Operand& input1);
 
   // assigns result to a new temporary of input size
-  Operand And(Operand input0, Operand input1);
-  Operand Div(Operand input0, Operand input1);
-  Operand Sdiv(Operand input0, Operand input1);
-  Operand Mod(Operand input0, Operand input1);
-  Operand Not(Operand input0);
-  Operand Or(Operand input0, Operand input1);
-  Operand Xor(Operand input0, Operand input1);
-  Operand Lshl(Operand input0, Operand input1);
-  Operand Lshr(Operand input0, Operand input1);
-  Operand Ashr(Operand input0, Operand input1);
-  Operand Ite(Operand input0, Operand input1, Operand input2);
+  Operand And(const Operand& input0, const Operand& input1);
+  Operand Div(const Operand& input0, const Operand& input1);
+  Operand Sdiv(const Operand& input0, const Operand& input1);
+  Operand Mod(const Operand& input0, const Operand& input1);
+  Operand Not(const Operand& input0);
+  Operand Or(const Operand& input0, const Operand& input1);
+  Operand Xor(const Operand& input0, const Operand& input1);
+  Operand Lshl(const Operand& input0, const Operand& input1);
+  Operand Lshr(const Operand& input0, const Operand& input1);
+  Operand Ashr(const Operand& input0, const Operand& input1);
+  Operand Ite(const Operand& input0, const Operand& input1,
+              const Operand& input2);
 
   // assigns result to a new temporary of size 8
-  Operand Bisz(Operand input0);
-  Operand Bisnz(Operand input0);
-  Operand Equ(Operand input0, Operand input1);
+  Operand Bisz(const Operand& input0);
+  Operand Bisnz(const Operand& input0);
+  Operand Equ(const Operand& input0, const Operand& input1);
 
-  std::tuple<Operand, Operand> SignedToUnsigned(Operand value);
-  Operand UnsignedToSigned(Operand value, Operand sign);
+  std::tuple<Operand, Operand> SignedToUnsigned(const Operand& value);
+  Operand UnsignedToSigned(const Operand& value, const Operand& sign);
 
  public:
   explicit Translation(uint32_t flags);

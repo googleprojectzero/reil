@@ -36,7 +36,7 @@ Immediate Interpreter::GetOperand(const Operand &op) const {
   }
 }
 
-void Interpreter::SetOperand(const Operand &op, Immediate value) {
+void Interpreter::SetOperand(const Operand &op, const Immediate &value) {
   if (absl::holds_alternative<Register>(op)) {
     registers_[absl::get<Register>(op).index] = value;
   } else if (absl::holds_alternative<Temporary>(op)) {
@@ -352,7 +352,7 @@ Immediate Interpreter::GetRegister(uint32_t index) const {
   return registers_.at(index);
 }
 
-void Interpreter::SetRegister(uint32_t index, Immediate value) {
+void Interpreter::SetRegister(uint32_t index, const Immediate &value) {
   registers_[index] = value;
 }
 

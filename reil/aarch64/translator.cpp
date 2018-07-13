@@ -75,22 +75,22 @@ class Translation : public reil::Translation {
 
   Operand Register(decoder::Register::Name name);
 
-  Operand GetOperand(decoder::Operand operand);
+  Operand GetOperand(const decoder::Operand& operand);
   Operand GetOperand(uint8_t index);
-  void SetOperand(decoder::Operand operand, Operand value);
-  void SetOperand(uint8_t index, Operand value);
+  void SetOperand(const decoder::Operand& operand, const Operand& value);
+  void SetOperand(uint8_t index, const Operand& value);
 
-  Operand ApplyExtend(decoder::Extend extend, Operand value);
-  Operand ApplyExtend(uint8_t index, Operand value);
-  Operand ApplyShift(decoder::Shift shift, Operand value);
-  Operand ApplyShift(uint8_t index, Operand value);
+  Operand ApplyExtend(const decoder::Extend& extend, const Operand& value);
+  Operand ApplyExtend(uint8_t index, const Operand& value);
+  Operand ApplyShift(const decoder::Shift& shift, const Operand& value);
+  Operand ApplyShift(uint8_t index, const Operand& value);
 
   std::tuple<Operand, Operand, Operand, Operand, Operand> AddWithCarry(
-      Operand lhs, Operand rhs, Operand carry);
-  Operand CountLeadingSignBits(Operand value);
-  Operand CountLeadingZeroBits(Operand value);
-  Operand Pack(std::vector<Operand> values);
-  std::vector<Operand> Unpack(Operand value, uint8_t count);
+      const Operand& lhs, const Operand& rhs, const Operand& carry);
+  Operand CountLeadingSignBits(const Operand& value);
+  Operand CountLeadingZeroBits(const Operand& value);
+  Operand Pack(const std::vector<Operand>& values);
+  std::vector<Operand> Unpack(const Operand& value, uint8_t count);
 
   Operand ConditionHolds();
 
@@ -152,7 +152,7 @@ Operand Translation::Register(decoder::Register::Name name) {
   }
 }
 
-Operand Translation::GetOperand(decoder::Operand operand) {
+Operand Translation::GetOperand(const decoder::Operand& operand) {
   Operand value;
 
   switch (operand.index()) {
@@ -214,7 +214,8 @@ Operand Translation::GetOperand(uint8_t index) {
   return GetOperand(di_.operands[index]);
 }
 
-void Translation::SetOperand(decoder::Operand operand, Operand value) {
+void Translation::SetOperand(const decoder::Operand& operand,
+                             const Operand& value) {
   Operand target;
 
   switch (operand.index()) {
@@ -263,12 +264,13 @@ void Translation::SetOperand(decoder::Operand operand, Operand value) {
   }
 }
 
-void Translation::SetOperand(uint8_t index, Operand value) {
+void Translation::SetOperand(uint8_t index, const Operand& value) {
   assert(index < di_.operands.size());
   return SetOperand(di_.operands[index], value);
 }
 
-Operand Translation::ApplyExtend(decoder::Extend extend, Operand value) {
+Operand Translation::ApplyExtend(const decoder::Extend& extend,
+                                 const Operand& value) {
   uint8_t result_size = Size(value);
   uint8_t size = 64;
 
@@ -295,11 +297,12 @@ Operand Translation::ApplyExtend(decoder::Extend extend, Operand value) {
   return Lshl(tmp, Imm8(extend.count));
 }
 
-Operand Translation::ApplyExtend(uint8_t index, Operand value) {
+Operand Translation::ApplyExtend(uint8_t index, const Operand& value) {
   return ApplyExtend(absl::get<decoder::Extend>(di_.operands[index]), value);
 }
 
-Operand Translation::ApplyShift(decoder::Shift shift, Operand value) {
+Operand Translation::ApplyShift(const decoder::Shift& shift,
+                                const Operand& value) {
   uint8_t size = Size(value);
   Operand result;
 
@@ -336,12 +339,13 @@ Operand Translation::ApplyShift(decoder::Shift shift, Operand value) {
   return result;
 }
 
-Operand Translation::ApplyShift(uint8_t index, Operand value) {
+Operand Translation::ApplyShift(uint8_t index, const Operand& value) {
   return ApplyShift(absl::get<decoder::Shift>(di_.operands[index]), value);
 }
 
 std::tuple<Operand, Operand, Operand, Operand, Operand>
-Translation::AddWithCarry(Operand lhs, Operand rhs, Operand carry) {
+Translation::AddWithCarry(const Operand& lhs, const Operand& rhs,
+                          const Operand& carry) {
   uint16_t size = Size(lhs);
 
   // calculation
@@ -374,7 +378,7 @@ Translation::AddWithCarry(Operand lhs, Operand rhs, Operand carry) {
   return {result, n, z, c, v};
 }
 
-Operand Translation::CountLeadingSignBits(Operand value) {
+Operand Translation::CountLeadingSignBits(const Operand& value) {
   uint16_t size = Size(value);
 
   auto tmp1 = Lshl(And(Not(Immediate::SignBit(size)), value), Imm8(1));
@@ -383,7 +387,7 @@ Operand Translation::CountLeadingSignBits(Operand value) {
   return CountLeadingZeroBits(tmp2);
 }
 
-Operand Translation::CountLeadingZeroBits(Operand value) {
+Operand Translation::CountLeadingZeroBits(const Operand& value) {
   // we provide different implementations here, since the obvious implementation
   // is very branch-heavy.
   uint16_t size = Size(value);
@@ -424,7 +428,7 @@ Operand Translation::CountLeadingZeroBits(Operand value) {
   return result;
 }
 
-Operand Translation::Pack(std::vector<Operand> values) {
+Operand Translation::Pack(const std::vector<Operand>& values) {
   uint8_t value_size = Size(values[0]);
   uint8_t result_size = value_size * values.size();
   Operand result = Imm(result_size, 0);
@@ -435,7 +439,7 @@ Operand Translation::Pack(std::vector<Operand> values) {
   return result;
 }
 
-std::vector<Operand> Translation::Unpack(Operand value, uint8_t count) {
+std::vector<Operand> Translation::Unpack(const Operand& value, uint8_t count) {
   std::vector<Operand> results(count);
   uint8_t result_size = Size(value) / count;
   for (uint8_t i = 0; i < count; ++i) {

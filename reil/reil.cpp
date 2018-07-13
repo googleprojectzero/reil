@@ -19,7 +19,7 @@
 namespace reil {
 Offset::Offset(uint16_t offset) : offset(offset) {}
 
-Register::Register(uint16_t size, uint8_t index, std::string name)
+Register::Register(uint16_t size, uint8_t index, const std::string& name)
     : size(size), index(index), name(name) {}
 
 Temporary::Temporary(uint16_t size, uint16_t index)
@@ -31,7 +31,8 @@ const Operand kJump = Imm8(0);
 const Operand kCall = Imm8(1);
 const Operand kReturn = Imm8(2);
 
-Instruction Add(Operand input0, Operand input1, Operand output) {
+Instruction Add(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Add;
   i.input0 = input0;
@@ -40,7 +41,8 @@ Instruction Add(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction And(Operand input0, Operand input1, Operand output) {
+Instruction And(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::And;
   i.input0 = input0;
@@ -49,7 +51,7 @@ Instruction And(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Bisz(Operand input0, Operand output) {
+Instruction Bisz(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Bisz;
   i.input0 = input0;
@@ -57,7 +59,8 @@ Instruction Bisz(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Bsh(Operand input0, Operand input1, Operand output) {
+Instruction Bsh(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Bsh;
   i.input0 = input0;
@@ -66,7 +69,8 @@ Instruction Bsh(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Div(Operand input0, Operand input1, Operand output) {
+Instruction Div(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Div;
   i.input0 = input0;
@@ -75,7 +79,7 @@ Instruction Div(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Jcc(Operand input0, Operand output) {
+Instruction Jcc(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Jcc;
   i.input0 = input0;
@@ -83,7 +87,8 @@ Instruction Jcc(Operand input0, Operand output) {
   return i;
 }
 
-Instruction JccHint(Operand input0, Operand input1, Operand output) {
+Instruction JccHint(const Operand& input0, const Operand& input1,
+                    const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Jcc;
   i.input0 = input0;
@@ -92,7 +97,7 @@ Instruction JccHint(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Ldm(Operand input0, Operand output) {
+Instruction Ldm(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Ldm;
   i.input0 = input0;
@@ -100,7 +105,8 @@ Instruction Ldm(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Mod(Operand input0, Operand input1, Operand output) {
+Instruction Mod(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Mod;
   i.input0 = input0;
@@ -109,7 +115,8 @@ Instruction Mod(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Mul(Operand input0, Operand input1, Operand output) {
+Instruction Mul(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Mul;
   i.input0 = input0;
@@ -124,14 +131,15 @@ Instruction Nop() {
   return i;
 }
 
-Instruction Nop(Operand input0) {
+Instruction Nop(const Operand& input0) {
   Instruction i;
   i.opcode = Opcode::Nop;
   i.input0 = input0;
   return i;
 }
 
-Instruction Or(Operand input0, Operand input1, Operand output) {
+Instruction Or(const Operand& input0, const Operand& input1,
+               const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Or;
   i.input0 = input0;
@@ -140,7 +148,7 @@ Instruction Or(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Stm(Operand input0, Operand output) {
+Instruction Stm(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Stm;
   i.input0 = input0;
@@ -148,7 +156,7 @@ Instruction Stm(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Str(Operand input0, Operand output) {
+Instruction Str(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Str;
   i.input0 = input0;
@@ -156,7 +164,8 @@ Instruction Str(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Sub(Operand input0, Operand input1, Operand output) {
+Instruction Sub(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Sub;
   i.input0 = input0;
@@ -165,7 +174,7 @@ Instruction Sub(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Undef(Operand output) {
+Instruction Undef(const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Undef;
   i.output = output;
@@ -178,7 +187,8 @@ Instruction Unkn() {
   return i;
 }
 
-Instruction Xor(Operand input0, Operand input1, Operand output) {
+Instruction Xor(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Xor;
   i.input0 = input0;
@@ -187,7 +197,7 @@ Instruction Xor(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Bisnz(Operand input0, Operand output) {
+Instruction Bisnz(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Bisnz;
   i.input0 = input0;
@@ -195,7 +205,8 @@ Instruction Bisnz(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Equ(Operand input0, Operand input1, Operand output) {
+Instruction Equ(const Operand& input0, const Operand& input1,
+                const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Equ;
   i.input0 = input0;
@@ -204,7 +215,8 @@ Instruction Equ(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Lshl(Operand input0, Operand input1, Operand output) {
+Instruction Lshl(const Operand& input0, const Operand& input1,
+                 const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Lshl;
   i.input0 = input0;
@@ -213,7 +225,8 @@ Instruction Lshl(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Lshr(Operand input0, Operand input1, Operand output) {
+Instruction Lshr(const Operand& input0, const Operand& input1,
+                 const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Lshr;
   i.input0 = input0;
@@ -222,7 +235,8 @@ Instruction Lshr(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Ashr(Operand input0, Operand input1, Operand output) {
+Instruction Ashr(const Operand& input0, const Operand& input1,
+                 const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Ashr;
   i.input0 = input0;
@@ -231,7 +245,7 @@ Instruction Ashr(Operand input0, Operand input1, Operand output) {
   return i;
 }
 
-Instruction Sex(Operand input0, Operand output) {
+Instruction Sex(const Operand& input0, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Sex;
   i.input0 = input0;
@@ -239,15 +253,15 @@ Instruction Sex(Operand input0, Operand output) {
   return i;
 }
 
-Instruction Sys(Operand input0) {
+Instruction Sys(const Operand& input0) {
   Instruction i;
   i.opcode = Opcode::Sys;
   i.input0 = input0;
   return i;
 }
 
-Instruction Ite(Operand input0, Operand input1, Operand input2,
-                Operand output) {
+Instruction Ite(const Operand& input0, const Operand& input1,
+                const Operand& input2, const Operand& output) {
   Instruction i;
   i.opcode = Opcode::Ite;
   i.input0 = input0;
@@ -258,7 +272,7 @@ Instruction Ite(Operand input0, Operand input1, Operand input2,
 }
 
 template <typename T>
-static std::ostream &hex(std::ostream &stream, T value, size_t width = 0) {
+static std::ostream& hex(std::ostream& stream, T value, size_t width = 0) {
   auto old_flags = stream.flags();
   auto old_precision = stream.precision();
   auto old_fill = stream.fill();
@@ -277,39 +291,39 @@ static std::ostream &hex(std::ostream &stream, T value, size_t width = 0) {
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream, Operand op) {
-  switch (op.index()) {
+std::ostream& operator<<(std::ostream& stream, const Operand& opnd) {
+  switch (opnd.index()) {
     case kImmediate: {
-      Immediate imm = absl::get<Immediate>(op);
+      Immediate imm = absl::get<Immediate>(opnd);
       stream << imm;
     } break;
 
     case kOffset: {
-      Offset off = absl::get<Offset>(op);
+      Offset off = absl::get<Offset>(opnd);
       stream << ".";
       hex(stream, off.offset, 4);
     } break;
 
     case kRegister: {
-      Register reg = absl::get<Register>(op);
+      Register reg = absl::get<Register>(opnd);
       stream << "(" << reg.name << ", " << reg.size << ")";
     } break;
 
     case kTemporary: {
-      Temporary tmp = absl::get<Temporary>(op);
+      Temporary tmp = absl::get<Temporary>(opnd);
       stream << "(t" << tmp.index << ", " << tmp.size << ")";
     } break;
 
     case kLabel: {
-      Label lbl = absl::get<Label>(op);
+      Label lbl = absl::get<Label>(opnd);
       stream << "label_" << (int)lbl.index;
     } break;
   }
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream, Instruction i) {
-  switch (i.opcode) {
+std::ostream& operator<<(std::ostream& stream, const Instruction& ri) {
+  switch (ri.opcode) {
     case Opcode::Add: {
       stream << "add   ";
     } break;
@@ -411,35 +425,35 @@ std::ostream &operator<<(std::ostream &stream, Instruction i) {
     } break;
   }
 
-  if (i.input0.index() != kNone) {
-    stream << i.input0;
+  if (ri.input0.index() != kNone) {
+    stream << ri.input0;
   }
 
-  if (i.input1.index() != kNone) {
-    if (i.input0.index() != kNone) {
+  if (ri.input1.index() != kNone) {
+    if (ri.input0.index() != kNone) {
       stream << ", ";
     }
-    stream << i.input1;
+    stream << ri.input1;
   }
 
-  if (i.input2.index() != kNone) {
-    if (i.input1.index() != kNone) {
+  if (ri.input2.index() != kNone) {
+    if (ri.input1.index() != kNone) {
       stream << ", ";
     }
-    stream << i.input2;
+    stream << ri.input2;
   }
 
-  if (i.output.index() != kNone) {
-    if (i.input0.index() != kNone) {
+  if (ri.output.index() != kNone) {
+    if (ri.input0.index() != kNone) {
       stream << ", ";
     }
-    stream << i.output;
+    stream << ri.output;
   }
 
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream, NativeInstruction ni) {
+std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni) {
   hex(stream, ni.address) << " " << ni.mnemonic << std::endl;
   for (uint16_t i = 0; i < ni.reil.size(); ++i) {
     stream << ".";

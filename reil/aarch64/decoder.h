@@ -484,8 +484,8 @@ std::tuple<uint64_t, uint64_t> DecodeBitMasks(uint8_t size, Immediate imms,
                                               Immediate immr);
 Instruction DecodeInstruction(uint32_t opcode);
 
-std::ostream &operator<<(std::ostream &stream, Operand opnd);
-std::ostream &operator<<(std::ostream &stream, Instruction insn);
+std::ostream &operator<<(std::ostream &stream, const Operand &opnd);
+std::ostream &operator<<(std::ostream &stream, const Instruction &insn);
 }  // namespace decoder
 }  // namespace aarch64
 }  // namespace reil

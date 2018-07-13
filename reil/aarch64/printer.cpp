@@ -1484,7 +1484,7 @@ static void PrintDataProcessingThreeSource(std::ostream& stream,
   }
 }
 
-std::ostream& operator<<(std::ostream& stream, Instruction insn) {
+std::ostream& operator<<(std::ostream& stream, const Instruction& insn) {
   if (insn.opcode <= kAdrp) {
     PrintPcRelativeAddressing(stream, insn);
   } else if (insn.opcode <= kSubImmediate) {
@@ -1544,34 +1544,34 @@ std::ostream& operator<<(std::ostream& stream, Instruction insn) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, Operand operand) {
-  switch (operand.index()) {
+std::ostream& operator<<(std::ostream& stream, const Operand& opnd) {
+  switch (opnd.index()) {
     case kImmediate: {
-      PrintImmediate(stream, absl::get<Immediate>(operand));
+      PrintImmediate(stream, absl::get<Immediate>(opnd));
     } break;
 
     case kRegister: {
-      PrintRegister(stream, absl::get<Register>(operand));
+      PrintRegister(stream, absl::get<Register>(opnd));
     } break;
 
     case kSystemRegister: {
-      PrintSystemRegister(stream, absl::get<SystemRegister>(operand));
+      PrintSystemRegister(stream, absl::get<SystemRegister>(opnd));
     } break;
 
     case kShift: {
-      PrintShift(stream, absl::get<Shift>(operand));
+      PrintShift(stream, absl::get<Shift>(opnd));
     } break;
 
     case kExtend: {
-      PrintExtend(stream, absl::get<Extend>(operand));
+      PrintExtend(stream, absl::get<Extend>(opnd));
     } break;
 
     case kImmediateOffset: {
-      PrintImmediateOffset(stream, absl::get<ImmediateOffset>(operand));
+      PrintImmediateOffset(stream, absl::get<ImmediateOffset>(opnd));
     } break;
 
     case kRegisterOffset: {
-      PrintRegisterOffset(stream, absl::get<RegisterOffset>(operand));
+      PrintRegisterOffset(stream, absl::get<RegisterOffset>(opnd));
     } break;
 
     default:

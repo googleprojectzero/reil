@@ -51,27 +51,27 @@ uint16_t Immediate::size() const { return size_; }
 
 std::vector<uint8_t> Immediate::bytes() { return bytes_; }
 
-Immediate Immediate::Extract(uint16_t result_size, uint16_t offset) const {
-  assert(offset < size_ && result_size <= size_ - offset);
+Immediate Immediate::Extract(uint16_t size, uint16_t offset) const {
+  assert(offset < size_ && size <= size_ - offset);
 
   if (offset) {
     Immediate tmp = *this >> offset;
-    return Immediate(result_size, tmp);
+    return Immediate(size, tmp);
   } else {
-    return Immediate(result_size, *this);
+    return Immediate(size, *this);
   }
 }
 
-Immediate Immediate::ZeroExtend(uint16_t result_size) const {
-  Immediate result(result_size, *this);
+Immediate Immediate::ZeroExtend(uint16_t size) const {
+  Immediate result(size, *this);
   return result;
 }
 
-Immediate Immediate::SignExtend(uint16_t result_size) const {
-  Immediate result(result_size, *this);
+Immediate Immediate::SignExtend(uint16_t size) const {
+  Immediate result(size, *this);
 
   if (Immediate::SignBit(size_, size_) & *this) {
-    result |= Immediate::Mask(result_size, result_size - size_) << size_;
+    result |= Immediate::Mask(size, size - size_) << size_;
   }
 
   return result;

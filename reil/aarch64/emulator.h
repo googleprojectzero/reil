@@ -29,9 +29,7 @@ class Emulator : public reil::Emulator {
   explicit Emulator(uint32_t flags = kDefaultFlags);
   ~Emulator();
 
-  uint32_t flags() const {
-    return flags_;
-  }
+  uint32_t flags() const { return flags_; }
 
   void Run() override;
   bool SingleStep() override;

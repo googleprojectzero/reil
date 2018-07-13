@@ -31,7 +31,7 @@ class Interpreter {
   uint16_t offset_;
 
   Immediate GetOperand(const Operand &op) const;
-  void SetOperand(const Operand &op, Immediate value);
+  void SetOperand(const Operand &op, const Immediate &value);
 
   void Add(const Instruction &ri);
   void And(const Instruction &ri);
@@ -68,7 +68,7 @@ class Interpreter {
   uint64_t Execute(NativeInstruction ni);
 
   Immediate GetRegister(uint32_t index) const;
-  void SetRegister(uint32_t index, Immediate value);
+  void SetRegister(uint32_t index, const Immediate &value);
 
   std::vector<uint8_t> GetMemory(uint64_t address, size_t size);
   void SetMemory(uint64_t address, const std::vector<uint8_t> &bytes);
