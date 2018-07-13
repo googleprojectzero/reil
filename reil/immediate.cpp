@@ -710,7 +710,7 @@ Immediate operator>>(Immediate lhs, uint16_t rhs) {
   return lhs;
 }
 
-std::ostream &operator<<(std::ostream &stream, Immediate imm) {
+std::ostream &operator<<(std::ostream &stream, const Immediate &imm) {
   auto old_flags = stream.flags();
   auto old_precision = stream.precision();
   auto old_fill = stream.fill();

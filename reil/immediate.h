@@ -107,7 +107,7 @@ class Immediate {
 
   friend Immediate old_multiply(const Immediate &lhs, const Immediate &rhs);
 
-  friend std::ostream &operator<<(std::ostream &stream, Immediate imm);
+  friend std::ostream &operator<<(std::ostream &stream, const Immediate &imm);
 };
 
 }  // namespace reil
