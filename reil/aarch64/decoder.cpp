@@ -801,7 +801,6 @@ static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
 
   uint8_t size = 8 << bits(opcode, 30, 31);
 
-  
   uint8_t o2_1_o1_o0 = (bits(opcode, 21, 23) << 1) | bit(opcode, 15);
 
   uint8_t o2 = bit(opcode, 23);
@@ -810,9 +809,9 @@ static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
   uint8_t o0 = bit(opcode, 15);
   uint8_t rt = bits(opcode, 16, 20);
 
-  // TODO: fix these UnallocatedEncodings - need to test on hardware, seems to 
+  // TODO: fix these UnallocatedEncodings - need to test on hardware, seems to
   // be a difference between documentation and assembler...
-  //if (o1 && o2 && rt != 0b11111) {
+  // if (o1 && o2 && rt != 0b11111) {
   //  return UnallocatedEncoding();
   //}
   // if (size < 32 && o1 && rt != 0b11111) {
@@ -908,14 +907,14 @@ static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
   if (insn.opcode == kStxr || insn.opcode == kStxp || insn.opcode == kStlxp ||
       insn.opcode == kStlxr) {
     insn.operands.push_back(x(32, opcode, 16, 20));
-  } else if (insn.opcode == kCas || insn.opcode == kCasa || insn.opcode == kCasal ||
-      insn.opcode == kCasl) {
+  } else if (insn.opcode == kCas || insn.opcode == kCasa ||
+             insn.opcode == kCasal || insn.opcode == kCasl) {
     insn.operands.push_back(x(size, opcode, 16, 20));
   }
 
   insn.operands.push_back(x(size, opcode, 0, 4));
-  if (insn.opcode == kCasp || insn.opcode == kCaspa || insn.opcode == kCaspal
-    || insn.opcode == kCaspal) {
+  if (insn.opcode == kCasp || insn.opcode == kCaspa || insn.opcode == kCaspal ||
+      insn.opcode == kCaspal) {
     // TODO: duplicate w(s+1) and w(t+1)
   }
   if (insn.opcode == kLdxp || insn.opcode == kLdaxp || insn.opcode == kStxp ||
