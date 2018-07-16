@@ -802,16 +802,16 @@ static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
   uint8_t size = 8 << bits(opcode, 30, 31);
 
   uint8_t o2_1_o1_o0 = (bits(opcode, 21, 23) << 1) | bit(opcode, 15);
-  uint8_t rt = bits(opcode, 16, 20);
 
   // TODO: fix these UnallocatedEncodings - need to test on hardware, seems to
   // be a difference between documentation and assembler...
+  // uint8_t rt = bits(opcode, 16, 20);
   // if (o1 && o2 && rt != 0b11111) {
-  //  return UnallocatedEncoding();
-  //}
+  //   return UnallocatedEncoding();
+  // }
   // if (size < 32 && o1 && rt != 0b11111) {
-  //  return UnallocatedEncoding();
-  //}
+  //   return UnallocatedEncoding();
+  // }
 
   switch (o2_1_o1_o0) {
     case 0b0000: {
