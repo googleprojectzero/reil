@@ -801,59 +801,123 @@ static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
 
   uint8_t size = 8 << bits(opcode, 30, 31);
 
+  
+  uint8_t o2_1_o1_o0 = (bits(opcode, 21, 23) << 1) | bit(opcode, 15);
+
   uint8_t o2 = bit(opcode, 23);
   uint8_t l = bit(opcode, 22);
   uint8_t o1 = bit(opcode, 21);
   uint8_t o0 = bit(opcode, 15);
+  uint8_t rt = bits(opcode, 16, 20);
 
-  if (l) {
-    if (o1) {
-      if (!o2 && !o0) {
-        insn.opcode = kLdxp;
-      } else if (!o2) {
-        insn.opcode = kLdaxp;
+  // TODO: fix these UnallocatedEncodings - need to test on hardware, seems to 
+  // be a difference between documentation and assembler...
+  //if (o1 && o2 && rt != 0b11111) {
+  //  return UnallocatedEncoding();
+  //}
+  // if (size < 32 && o1 && rt != 0b11111) {
+  //  return UnallocatedEncoding();
+  //}
+
+  switch (o2_1_o1_o0) {
+    case 0b0000: {
+      insn.opcode = kStxr;
+    } break;
+
+    case 0b0001: {
+      insn.opcode = kStlxr;
+    } break;
+
+    case 0b0010: {
+      if (size < 32) {
+        insn.opcode = kCasp;
+        size <<= 1;
       } else {
-        return UnallocatedEncoding();
-      }
-    } else {
-      if (!o2 && !o0) {
-        insn.opcode = kLdxr;
-      } else if (!o2) {
-        insn.opcode = kLdaxr;
-      } else if (!o0) {
-        insn.opcode = kLdlar;
-      } else {
-        insn.opcode = kLdar;
-      }
-    }
-  } else {
-    if (o1) {
-      if (!o2 && !o0) {
         insn.opcode = kStxp;
-      } else if (!o2) {
+      }
+    } break;
+
+    case 0b0011: {
+      if (size < 32) {
+        insn.opcode = kCaspl;
+        size <<= 1;
+      } else {
         insn.opcode = kStlxp;
-      } else {
-        return UnallocatedEncoding();
       }
-    } else {
-      if (!o2 && !o0) {
-        insn.opcode = kStxr;
-      } else if (!o2) {
-        insn.opcode = kStlxr;
-      } else if (!o0) {
-        insn.opcode = kStllr;
+    } break;
+
+    case 0b0100: {
+      insn.opcode = kLdxr;
+    } break;
+
+    case 0b0101: {
+      insn.opcode = kLdaxr;
+    } break;
+
+    case 0b0110: {
+      if (size < 32) {
+        insn.opcode = kCaspa;
+        size <<= 1;
       } else {
-        insn.opcode = kStlr;
+        insn.opcode = kLdxp;
       }
-    }
+    } break;
+
+    case 0b0111: {
+      if (size < 32) {
+        insn.opcode = kCaspal;
+        size <<= 1;
+      } else {
+        insn.opcode = kLdaxp;
+      }
+    } break;
+
+    case 0b1000: {
+      insn.opcode = kStllr;
+    } break;
+
+    case 0b1001: {
+      insn.opcode = kStlr;
+    } break;
+
+    case 0b1010: {
+      insn.opcode = kCas;
+    } break;
+
+    case 0b1011: {
+      insn.opcode = kCasl;
+    } break;
+
+    case 0b1100: {
+      insn.opcode = kLdlar;
+    } break;
+
+    case 0b1101: {
+      insn.opcode = kLdar;
+    } break;
+
+    case 0b1110: {
+      insn.opcode = kCasa;
+    } break;
+
+    case 0b1111: {
+      insn.opcode = kCasal;
+    } break;
   }
 
   if (insn.opcode == kStxr || insn.opcode == kStxp || insn.opcode == kStlxp ||
       insn.opcode == kStlxr) {
     insn.operands.push_back(x(32, opcode, 16, 20));
+  } else if (insn.opcode == kCas || insn.opcode == kCasa || insn.opcode == kCasal ||
+      insn.opcode == kCasl) {
+    insn.operands.push_back(x(size, opcode, 16, 20));
   }
 
   insn.operands.push_back(x(size, opcode, 0, 4));
+  if (insn.opcode == kCasp || insn.opcode == kCaspa || insn.opcode == kCaspal
+    || insn.opcode == kCaspal) {
+    // TODO: duplicate w(s+1) and w(t+1)
+  }
   if (insn.opcode == kLdxp || insn.opcode == kLdaxp || insn.opcode == kStxp ||
       insn.opcode == kStlxp) {
     insn.operands.push_back(x(size, opcode, 10, 14));

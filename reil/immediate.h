@@ -105,8 +105,6 @@ class Immediate {
   friend Immediate operator<<(Immediate lhs, uint16_t rhs);
   friend Immediate operator>>(Immediate lhs, uint16_t rhs);
 
-  friend Immediate old_multiply(const Immediate &lhs, const Immediate &rhs);
-
   friend std::ostream &operator<<(std::ostream &stream, const Immediate &imm);
 };
 

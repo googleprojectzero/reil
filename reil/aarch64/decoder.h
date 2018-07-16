@@ -132,6 +132,14 @@ enum Opcode {
   kTbz,
 
   // Load/store exclusive
+  kCas,
+  kCasa,
+  kCasal,
+  kCasl,
+  kCasp,
+  kCaspa,
+  kCaspal,
+  kCaspl,
   kLdar,
   kLdaxp,
   kLdaxr,

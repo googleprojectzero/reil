@@ -595,6 +595,43 @@ AARCH64_TEST(BranchAndLinkImmediateBackward, 5,
                  0xfd, 0xff, 0xff, 0x97,  // bl  0 <backward>
              })
 
+AARCH64_TEST(Casb, 4,
+             {
+                0x82, 0x00, 0x00, 0x10, // adr  x2, 10 <data>
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x40, 0x00, 0x00, 0xb9, // str  w0, [x2]
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x23, 0x23, 0x23, 0x23,
+             })
+
+AARCH64_TEST(Cash, 4,
+             {
+                0x82, 0x00, 0x00, 0x10, // adr  x2, 10 <data>
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x40, 0x00, 0x00, 0xb9, // str  w0, [x2]
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x23, 0x23, 0x23, 0x23,
+             })
+
+AARCH64_TEST(Casw, 4,
+             {
+                0x82, 0x00, 0x00, 0x10, // adr  x2, 10 <data>
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x40, 0x00, 0x00, 0xb9, // str  w0, [x2]
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x23, 0x23, 0x23, 0x23,
+             })
+
+
+AARCH64_TEST(Cas, 4,
+             {
+                0x82, 0x00, 0x00, 0x10, // adr  x2, 10 <data>
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x40, 0x00, 0x00, 0xb9, // str  w0, [x2]
+                0x41, 0x7c, 0xa0, 0x08, // casb  w0, w1, [x2]
+                0x23, 0x23, 0x23, 0x23,
+             })
+
 AARCH64_TEST(Stxrb, 4,
              {
                  0x82, 0x00, 0x00, 0x10,  // adr  x2, 10 <data>
@@ -1914,6 +1951,9 @@ AARCH64_RANDOM_TEST(Movz, 0b01010010100000000000000000000000,
 
 AARCH64_RANDOM_TEST(Movk, 0b01110010100000000000000000000000,
                           0b10000000011111111111111111100000)
+
+AARCH64_RANDOM_TEST(Casp, 0b00001000001000000111110000000000,
+                          0b01000000010111111000001111111111)
 }  // namespace test
 }  // namespace reil
 

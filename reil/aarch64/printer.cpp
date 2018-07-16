@@ -877,7 +877,27 @@ static void PrintLoadStoreExclusive(std::ostream& stream,
   uint8_t size = 64;
 
   if (insn.opcode <= kLdxr) {
-    if (insn.opcode == kLdxr) {
+    if (insn.opcode == kCas) {
+      stream << "cas";
+    } else if (insn.opcode == kCasa) {
+      stream << "casa";
+    } else if (insn.opcode == kCasal) {
+      stream << "casal";
+    } else if (insn.opcode == kCasl) {
+      stream << "casl";
+    } else if (insn.opcode == kCasp) {
+      stream << "casp ";
+      pair = true;
+    } else if (insn.opcode == kCaspa) {
+      stream << "caspa ";
+      pair = true;
+    } else if (insn.opcode == kCaspal) {
+      stream << "caspal ";
+      pair = true;
+    } else if (insn.opcode == kCaspl) {
+      stream << "caspl ";
+      pair = true;
+    } else if (insn.opcode == kLdxr) {
       stream << "ldxr";
     } else if (insn.opcode == kLdxp) {
       stream << "ldxp ";

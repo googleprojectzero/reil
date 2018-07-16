@@ -860,6 +860,33 @@ void Translation::TranslateTestAndBranch() {
 
 void Translation::TranslateLoadStoreExclusive() {
   switch (di_.opcode) {
+    case decoder::kCas:
+    case decoder::kCasa:
+    case decoder::kCasal:
+    case decoder::kCasl: {
+      auto tmp1 = GetOperand(2);
+      auto tmp2 = Equ(GetOperand(0), tmp1);
+      if (flags_ & kMinimalBranches) {
+        Operand tmp3 = Ite(tmp2, GetOperand(1), tmp1);
+        SetOperand(2, tmp3);
+      } else {
+        auto done = Label();
+        auto tmp3 = Bisz(tmp2);
+        Jcc(tmp3, done);
+        SetOperand(2, GetOperand(1));
+        Nop(done);
+      }
+    } break;
+
+    case decoder::kCasp:
+    case decoder::kCaspa:
+    case decoder::kCaspal:
+    case decoder::kCaspl: {
+      // TODO: implement
+      valid_ = false;
+      return;
+    } break;
+
     case decoder::kLdxr:
     case decoder::kLdaxr:
     case decoder::kLdlar:
