@@ -595,6 +595,8 @@ AARCH64_TEST(BranchAndLinkImmediateBackward, 5,
                  0xfd, 0xff, 0xff, 0x97,  // bl  0 <backward>
              })
 
+/* TODO: These are either not supported by unicorn, or assembled incorrectly by 
+   the GNU assembler. Need to test on hardware.
 AARCH64_TEST(Casb, 4,
              {
                  0x82, 0x00, 0x00, 0x10,  // adr  x2, 10 <data>
@@ -630,6 +632,7 @@ AARCH64_TEST(Cas, 4,
                  0x41, 0x7c, 0xa0, 0x08,  // casb  w0, w1, [x2]
                  0x23, 0x23, 0x23, 0x23,
              })
+*/
 
 AARCH64_TEST(Stxrb, 4,
              {
