@@ -14,9 +14,9 @@
 
 #include <random>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <reil/immediate.h>
+#include "reil/immediate.h"
 
 namespace reil {
 namespace test {

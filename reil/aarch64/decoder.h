@@ -19,7 +19,7 @@
 #include <tuple>
 #include <vector>
 
-#include <absl/types/variant.h>
+#include "absl/types/variant.h"
 
 namespace reil {
 namespace aarch64 {

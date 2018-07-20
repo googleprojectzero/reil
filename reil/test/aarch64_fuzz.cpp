@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <reil/aarch64.h>
-
+#include <cstdint>
 #include <iostream>
 #include <vector>
 
-#include <cstdint>
+#include "reil/aarch64.h"
 
 int main(int argc, char **argv) {
   std::vector<uint8_t> bytes({0, 0, 0, 0, 0, 0, 0, 0});

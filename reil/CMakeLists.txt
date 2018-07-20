@@ -40,16 +40,6 @@ if (NOT DEFINED GOOGLETEST_LIBRARIES)
   message(FATAL_ERROR "GOOGLETEST_LIBRARIES was not supplied")
 endif()
 
-if (DEFINED UNICORN_INCLUDE_DIR)
-  include_directories(${UNICORN_INCLUDE_DIR})
-else()
-  message(FATAL_ERROR "UNICORN_INCLUDE_DIR was not supplied")
-endif()
-
-if (NOT DEFINED UNICORN_LIBRARIES)
-  message(FATAL_ERROR "UNICORN_LIBRARIES was not supplied")
-endif()
-
 include_directories("${CMAKE_SOURCE_DIR}/../")
 
 set(REIL_INCLUDE_FILES
@@ -67,8 +57,8 @@ target_compile_features(reil PUBLIC cxx_std_11)
 target_link_libraries(reil ${ABSEIL_LIBRARIES})
 
 add_executable(aarch64_test
-    test/aarch64_test.cpp test/aarch64_unicorn_emulator.cpp)
-target_link_libraries(aarch64_test reil pthread ${GOOGLETEST_LIBRARIES} ${UNICORN_LIBRARIES})
+    test/aarch64_test.cpp)
+target_link_libraries(aarch64_test reil pthread ${GOOGLETEST_LIBRARIES})
 
 add_executable(immediate_test
     immediate.cpp

@@ -42,28 +42,12 @@ ExternalProject_Get_Property(googletest BINARY_DIR)
 set(GOOGLETEST_INCLUDE_DIR "${SOURCE_DIR}/googletest/include/")
 set(GOOGLETEST_LIBRARIES "${BINARY_DIR}/googletest/libgtest.a")
 
-ExternalProject_Add(unicorn
-    GIT_REPOSITORY      "https://github.com/unicorn-engine/unicorn.git"
-    GIT_TAG             "master"
-    BUILD_IN_SOURCE     1
-    UPDATE_DISCONNECTED 1
-    CONFIGURE_COMMAND   ""
-    INSTALL_COMMAND     ""
-    BUILD_COMMAND       "./make.sh"
-  )
-
-ExternalProject_Get_Property(unicorn SOURCE_DIR)
-set(UNICORN_INCLUDE_DIR "${SOURCE_DIR}/include")
-set(UNICORN_LIBRARIES "${SOURCE_DIR}/libunicorn.a")
-
 ExternalProject_Add(reil
-    DEPENDS             abseil googletest unicorn
+    DEPENDS             abseil googletest
     CMAKE_ARGS          "-DABSEIL_INCLUDE_DIR=${ABSEIL_INCLUDE_DIR}"
     CMAKE_ARGS          "-DABSEIL_LIBRARIES=${ABSEIL_LIBRARIES}"
     CMAKE_ARGS          "-DGOOGLETEST_INCLUDE_DIR=${GOOGLETEST_INCLUDE_DIR}"
     CMAKE_ARGS          "-DGOOGLETEST_LIBRARIES=${GOOGLETEST_LIBRARIES}"
-    CMAKE_ARGS          "-DUNICORN_INCLUDE_DIR=${UNICORN_INCLUDE_DIR}"
-    CMAKE_ARGS          "-DUNICORN_LIBRARIES=${UNICORN_LIBRARIES}"
     SOURCE_DIR          "${CMAKE_SOURCE_DIR}/reil"
     INSTALL_COMMAND     ""
   )
