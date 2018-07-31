@@ -26,7 +26,8 @@ enum TranslationFlags {
   kDefaultFlags = 0,
   kMinimalBranches = 1,
   kPureReil = 1 << 1,
-  kNoMnemonics = 1 << 2,
+  kPositionIndependent = 1 << 2,
+  kNoMnemonics = 1 << 3,
 
   kPerArchitectureFlag = 1 << 24,
 };

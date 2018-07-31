@@ -26,9 +26,18 @@ static void PrintImmediate(std::ostream& stream, const Immediate& opnd) {
 
 static void PrintSignedImmediate(std::ostream& stream, const Immediate& opnd) {
   if (opnd.value & (1ull << (opnd.size - 1))) {
-    stream << "#-0x" << std::hex << (~opnd.value) + 1;
+    stream << "#-0x" << std::hex << (~opnd.value) + 1ull;
   } else {
     stream << "#0x" << std::hex << opnd.value;
+  }
+}
+
+static void PrintPcRelativeOffset(std::ostream& stream, const Instruction& insn,
+                                  const Immediate& opnd) {
+  if (opnd.value & (1ull << (opnd.size - 1))) {
+    stream << "#0x" << std::hex << insn.address - ((~opnd.value) + 1ull);
+  } else {
+    stream << "#0x" << std::hex << insn.address + opnd.value;
   }
 }
 
@@ -43,7 +52,7 @@ static void PrintRegister(std::ostream& stream, const Register& opnd) {
     if (opnd.name == Register::kXzr) {
       stream << "zr";
     } else {
-      stream << (unsigned)(opnd.name - Register::kX0);
+      stream << std::dec << (unsigned)(opnd.name - Register::kX0);
     }
   } else if (opnd.name == Register::kSp) {
     if (opnd.size <= 32) {
@@ -53,6 +62,20 @@ static void PrintRegister(std::ostream& stream, const Register& opnd) {
     }
   } else if (opnd.name == Register::kPc) {
     stream << "pc";
+  } else if (Register::kV0 <= opnd.name && opnd.name <= Register::kV31) {
+    if (opnd.size == 8) {
+      stream << "b";
+    } else if (opnd.size == 16) {
+      stream << "h";
+    } else if (opnd.size == 32) {
+      stream << "s";
+    } else if (opnd.size == 64) {
+      stream << "d";
+    } else if (opnd.size == 128) {
+      stream << "q";
+    }
+
+    stream << std::dec << (unsigned)(opnd.name - Register::kV0);
   } else {
     stream << "<unsupported_reg>";
   }
@@ -61,11 +84,11 @@ static void PrintRegister(std::ostream& stream, const Register& opnd) {
 static void PrintSystemRegister(std::ostream& stream,
                                 const SystemRegister& opnd) {
   if (opnd.name == SystemRegister::kUnknown) {
-    stream << "S" << std::dec << opnd.op0;
-    stream << "_" << std::dec << opnd.op1;
-    stream << "_C" << std::dec << opnd.crn;
-    stream << "_C" << std::dec << opnd.crm;
-    stream << "_" << std::dec << opnd.op2;
+    stream << "S" << std::dec << (int)opnd.op0;
+    stream << "_" << std::dec << (int)opnd.op1;
+    stream << "_C" << std::dec << (int)opnd.crn;
+    stream << "_C" << std::dec << (int)opnd.crm;
+    stream << "_" << std::dec << (int)opnd.op2;
   } else if (opnd.name == SystemRegister::kSPSel) {
     stream << "SPSel";
   } else if (opnd.name == SystemRegister::kDAIFSet) {
@@ -83,7 +106,11 @@ static void PrintShift(std::ostream& stream, const Shift& opnd) {
   if (opnd.type != Shift::kNone) {
     switch (opnd.type) {
       case Shift::kLsl: {
-        stream << ", lsl ";
+        if (opnd.count) {
+          stream << ", lsl ";
+        } else {
+          return;
+        }
       } break;
 
       case Shift::kLsr: {
@@ -215,7 +242,7 @@ static void PrintConditionCode(std::ostream& stream, ConditionCode cc) {
 
 static void PrintPrefetchOp(std::ostream& stream, uint8_t prfop) {
   if (((prfop & 0b11000) == 0b11000) || ((prfop & 0b00110) == 0b00110)) {
-    stream << "#" << std::dec << prfop;
+    stream << "#" << std::dec << (int)prfop;
   } else {
     switch (prfop & 0b11000) {
       case 0b00000: {
@@ -265,7 +292,7 @@ static void PrintPrefetchOp(std::ostream& stream, uint8_t prfop) {
 
 static void PrintBarrierType(std::ostream& stream, uint8_t option) {
   if (((option & 0b10) >> 1) == (option & 0b01)) {
-    stream << "#" << std::dec << option;
+    stream << "#" << std::dec << (int)option;
   } else {
     switch (option >> 2) {
       case 0b00: {
@@ -528,7 +555,7 @@ static void PrintConditionalBranch(std::ostream& stream,
   stream << "b.";
   PrintConditionCode(stream, insn.cc);
   stream << " ";
-  PrintSignedImmediate(stream, offset);
+  PrintPcRelativeOffset(stream, insn, offset);
 }
 
 static void PrintExceptionGeneration(std::ostream& stream,
@@ -836,7 +863,7 @@ static void PrintBranchImmediate(std::ostream& stream,
     stream << "b ";
   }
 
-  PrintSignedImmediate(stream, offset);
+  PrintPcRelativeOffset(stream, insn, offset);
 }
 
 static void PrintCompareAndBranch(std::ostream& stream,
@@ -852,7 +879,7 @@ static void PrintCompareAndBranch(std::ostream& stream,
   }
 
   stream << insn.operands[0] << ", ";
-  PrintSignedImmediate(stream, offset);
+  PrintPcRelativeOffset(stream, insn, offset);
 }
 
 static void PrintTestAndBranch(std::ostream& stream, const Instruction& insn) {
@@ -868,7 +895,7 @@ static void PrintTestAndBranch(std::ostream& stream, const Instruction& insn) {
   }
 
   stream << insn.operands[0] << ", #" << std::dec << bit.value << ", ";
-  PrintSignedImmediate(stream, offset);
+  PrintPcRelativeOffset(stream, insn, offset);
 }
 
 static void PrintLoadStoreExclusive(std::ostream& stream,
@@ -956,7 +983,7 @@ static void PrintLoadLiteral(std::ostream& stream, const Instruction& insn) {
 
   ImmediateOffset imm_off = absl::get<ImmediateOffset>(insn.operands[1]);
 
-  if (insn.opcode == kLdrLiteral) {
+  if (insn.opcode == kSimdLdrLiteral || insn.opcode == kLdrLiteral) {
     stream << "ldr ";
   } else if (insn.opcode == kLdrsLiteral) {
     stream << "ldrsw ";
@@ -978,15 +1005,15 @@ static void PrintLoadLiteral(std::ostream& stream, const Instruction& insn) {
 static void PrintLoadStorePair(std::ostream& stream, const Instruction& insn) {
   assert(insn.operands.size() == 3);
 
-  if (insn.opcode == kLdp) {
+  if (insn.opcode == kSimdLdp || insn.opcode == kLdp) {
     stream << "ldp ";
   } else if (insn.opcode == kLdpsw) {
     stream << "ldpsw ";
-  } else if (insn.opcode == kLdnp) {
+  } else if (insn.opcode == kSimdLdnp || insn.opcode == kLdnp) {
     stream << "ldnp ";
-  } else if (insn.opcode == kStp) {
+  } else if (insn.opcode == kSimdStp || insn.opcode == kStp) {
     stream << "stp ";
-  } else if (insn.opcode == kStnp) {
+  } else if (insn.opcode == kSimdStnp || insn.opcode == kStnp) {
     stream << "stnp ";
   } else {
     abort();
@@ -1015,9 +1042,9 @@ static void PrintLoadStore(std::ostream& stream, const Instruction& insn) {
     PrintPrefetchOp(stream, prfop.value);
     stream << ", " << insn.operands[1];
   } else {
-    if (insn.opcode == kLdr) {
+    if (insn.opcode == kSimdLdr || insn.opcode == kLdr) {
       stream << "ldr";
-    } else if (insn.opcode == kLdur) {
+    } else if (insn.opcode == kSimdLdur || insn.opcode == kLdur) {
       stream << "ldur";
     } else if (insn.opcode == kLdtr) {
       stream << "ldtr";
@@ -1027,9 +1054,9 @@ static void PrintLoadStore(std::ostream& stream, const Instruction& insn) {
       stream << "ldurs";
     } else if (insn.opcode == kLdtrs) {
       stream << "ldtrs";
-    } else if (insn.opcode == kStr) {
+    } else if (insn.opcode == kSimdStr || insn.opcode == kStr) {
       stream << "str";
-    } else if (insn.opcode == kStur) {
+    } else if (insn.opcode == kSimdStur || insn.opcode == kStur) {
       stream << "stur";
     } else if (insn.opcode == kSttr) {
       stream << "sttr";
@@ -1037,13 +1064,17 @@ static void PrintLoadStore(std::ostream& stream, const Instruction& insn) {
       abort();
     }
 
-    if (size == 8) {
-      stream << "b ";
-    } else if (size == 16) {
-      stream << "h ";
-    } else if (size == 32 && (insn.opcode == kLdrs || insn.opcode == kLdurs ||
-                              insn.opcode == kLdtrs)) {
-      stream << "w ";
+    if (insn.opcode >= kLdr) {
+      if (size == 8) {
+        stream << "b ";
+      } else if (size == 16) {
+        stream << "h ";
+      } else if (size == 32 && (insn.opcode == kLdrs || insn.opcode == kLdurs ||
+                                insn.opcode == kLdtrs)) {
+        stream << "w ";
+      } else {
+        stream << " ";
+      }
     } else {
       stream << " ";
     }
@@ -1237,6 +1268,11 @@ static void PrintLogicalShiftedRegister(std::ostream& stream,
                                         const Instruction& insn) {
   assert(insn.operands.size() == 4);
 
+  Register rd = absl::get<Register>(insn.operands[0]);
+  Register rn = absl::get<Register>(insn.operands[1]);
+  Register rm = absl::get<Register>(insn.operands[2]);
+  Shift shift = absl::get<Shift>(insn.operands[3]);
+
   switch (insn.opcode) {
     case kAndShiftedRegister: {
       if (insn.set_flags) {
@@ -1255,11 +1291,21 @@ static void PrintLogicalShiftedRegister(std::ostream& stream,
     } break;
 
     case kOrrShiftedRegister: {
-      stream << "orr ";
+      if (rn.name == Register::kXzr) {
+        stream << "mov " << rd << ", " << rm << shift;
+        return;
+      } else {
+        stream << "orr ";
+      }
     } break;
 
     case kOrnShiftedRegister: {
-      stream << "orn ";
+      if (rn.name == Register::kXzr) {
+        stream << "mvn " << rd << ", " << rm << shift;
+        return;
+      } else {
+        stream << "orn ";
+      }
     } break;
 
     case kEorShiftedRegister: {
@@ -1505,6 +1551,7 @@ static void PrintDataProcessingThreeSource(std::ostream& stream,
 }
 
 std::ostream& operator<<(std::ostream& stream, const Instruction& insn) {
+  stream << std::hex << insn.address << ": ";
   if (insn.opcode <= kAdrp) {
     PrintPcRelativeAddressing(stream, insn);
   } else if (insn.opcode <= kSubImmediate) {
@@ -1558,7 +1605,7 @@ std::ostream& operator<<(std::ostream& stream, const Instruction& insn) {
   } else if (insn.opcode <= kUmsubl) {
     PrintDataProcessingThreeSource(stream, insn);
   } else {
-    stream << "<unsupported_insn>";
+    stream << "invalid";
   }
 
   return stream;
@@ -1595,7 +1642,7 @@ std::ostream& operator<<(std::ostream& stream, const Operand& opnd) {
     } break;
 
     default:
-      stream << "<unsupported_opnd>";
+      stream << "invalid";
   }
 
   return stream;

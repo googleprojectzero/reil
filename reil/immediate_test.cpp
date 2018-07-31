@@ -19,7 +19,6 @@
 #include "reil/immediate.h"
 
 namespace reil {
-namespace test {
 
 std::mt19937_64 prng;
 
@@ -164,7 +163,6 @@ TEST(Immediate, LogicalShiftRight) {
   }
 }
 
-}  // namespace test
 }  // namespace reil
 
 int main(int argc, char** argv) {

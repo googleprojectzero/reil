@@ -106,7 +106,7 @@ enum Registers {
   kV,
 };
 
-NativeInstruction Translate(uint64_t address, const decoder::Instruction& di,
+NativeInstruction Translate(const decoder::Instruction& di,
                             uint32_t flags = kDefaultFlags);
 NativeInstruction Translate(uint64_t address, std::vector<uint8_t> bytes,
                             uint32_t flags = kDefaultFlags);

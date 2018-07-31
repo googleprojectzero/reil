@@ -27,9 +27,9 @@ Temporary::Temporary(uint16_t size, uint16_t index)
 
 Label::Label(uint8_t index) : index(index) {}
 
-const Operand kJump = Imm8(0);
-const Operand kCall = Imm8(1);
-const Operand kReturn = Imm8(2);
+const Immediate kJump = Imm8(0);
+const Immediate kCall = Imm8(1);
+const Immediate kReturn = Imm8(2);
 
 Instruction Add(const Operand& input0, const Operand& input1,
                 const Operand& output) {
@@ -277,7 +277,7 @@ static std::ostream& hex(std::ostream& stream, T value, size_t width = 0) {
   auto old_precision = stream.precision();
   auto old_fill = stream.fill();
 
-  stream << std::nouppercase << std::internal << std::setfill('0');
+  stream << std::nouppercase << std::internal << std::setfill('0') << std::hex;
   if (width)
     stream << std::setw(width / 4);
   else
@@ -454,12 +454,12 @@ std::ostream& operator<<(std::ostream& stream, const Instruction& ri) {
 }
 
 std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni) {
-  hex(stream, ni.address) << " " << ni.mnemonic << std::endl;
-  for (uint16_t i = 0; i < ni.reil.size(); ++i) {
-    stream << ".";
-    hex(stream, i);
-    stream << " " << ni.reil[i] << std::endl;
-  }
+  hex(stream, ni.address) << " " << ni.mnemonic;  // << std::endl;
+  // for (uint16_t i = 0; i < ni.reil.size(); ++i) {
+  //  stream << ".";
+  //  hex(stream, i);
+  //  stream << " " << ni.reil[i] << std::endl;
+  //}
   return stream;
 }
 }  // namespace reil

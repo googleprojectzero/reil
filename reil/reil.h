@@ -95,9 +95,9 @@ typedef absl::variant<int, Immediate, Offset, Register, Temporary, Label>
     Operand;
 
 // hints for the jcc instruction
-extern const Operand kJump;
-extern const Operand kCall;
-extern const Operand kReturn;
+extern const Immediate kJump;
+extern const Immediate kCall;
+extern const Immediate kReturn;
 
 struct Instruction {
   Opcode opcode;

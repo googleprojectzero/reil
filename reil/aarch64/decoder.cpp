@@ -46,6 +46,11 @@ static uint64_t sign_extend_bits(uint32_t opcode, uint8_t lsb, uint8_t msb) {
   return sign_mask | ((opcode & mask) >> lsb);
 }
 
+static Register v(uint8_t size, uint32_t opcode, uint8_t lsb, uint8_t msb) {
+  return Register(size, static_cast<Register::Name>(Register::kV0 +
+                                                    bits(opcode, lsb, msb)));
+}
+
 static Register x(uint8_t size, uint32_t opcode, uint8_t lsb, uint8_t msb) {
   return Register(size, static_cast<Register::Name>(bits(opcode, lsb, msb)));
 }
@@ -220,7 +225,7 @@ static Instruction DecodeLogicalImmediate(uint32_t opcode) {
     insn.operands.push_back(x_or_sp(size, opcode, 0, 4));
   }
 
-  insn.operands.push_back(x_or_sp(size, opcode, 5, 9));
+  insn.operands.push_back(x(size, opcode, 5, 9));
 
   uint64_t value, _;
   std::tie(value, _) = decode_bit_masks(bit(opcode, 22), bits(opcode, 10, 15),
@@ -713,8 +718,7 @@ static Instruction DecodeCompareAndBranch(uint32_t opcode) {
   }
 
   insn.operands.push_back(x(size, opcode, 0, 4));
-  insn.operands.push_back(
-      Immediate(size, sign_extend_bits(opcode, 5, 23) << 2));
+  insn.operands.push_back(Immediate(64, sign_extend_bits(opcode, 5, 23) << 2));
 
   return insn;
 }
@@ -739,6 +743,9 @@ static Instruction DecodeTestAndBranch(uint32_t opcode) {
 
 static Instruction DecodeSIMDLoadLiteral(uint32_t opcode);
 static Instruction DecodeSIMDLoadStorePair(uint32_t opcode);
+static Instruction DecodeSIMDLoadStoreUnscaledImmediate(uint32_t opcode);
+static Instruction DecodeSIMDLoadStoreRegisterOffset(uint32_t opcode);
+static Instruction DecodeSIMDLoadStoreUnsignedImmediate(uint32_t opcode);
 
 static Instruction DecodeLoadStoreExclusive(uint32_t opcode);
 static Instruction DecodeLoadLiteral(uint32_t opcode);
@@ -761,8 +768,16 @@ static Instruction DecodeLoadStore(uint32_t opcode) {
       return DecodeSIMDLoadLiteral(opcode);
     } else if (op1 == 0b10) {
       return DecodeSIMDLoadStorePair(opcode);
-    } else {
-      return UnallocatedEncoding();
+    } else if (op1 == 0b11) {
+      if ((op3 & 0b10) == 0b00) {
+        if ((op4 & 0b100000) == 0b000000) {
+          return DecodeSIMDLoadStoreUnscaledImmediate(opcode);
+        } else if ((op4 & 0b100000) == 0b100000 && op5 == 0b10) {
+          return DecodeSIMDLoadStoreRegisterOffset(opcode);
+        }
+      } else {
+        return DecodeSIMDLoadStoreUnsignedImmediate(opcode);
+      }
     }
   } else {
     // Scalar instructions
@@ -789,11 +804,195 @@ static Instruction DecodeLoadStore(uint32_t opcode) {
 }
 
 static Instruction DecodeSIMDLoadLiteral(uint32_t opcode) {
-  return UnallocatedEncoding();
+  Instruction insn;
+  insn.opcode = kSimdLdrLiteral;
+
+  uint8_t opc = bits(opcode, 30, 31);
+  uint8_t size = 32 << opc;
+
+  if (opc == 0b11) {
+    return UnallocatedEncoding();
+  }
+
+  insn.operands.push_back(v(size, opcode, 0, 4));
+  Register base = Register(64, Register::kPc);
+  Immediate offset = Immediate(64, sign_extend_bits(opcode, 5, 23) << 2);
+  Shift shift = Shift(Shift::kNone, 0);
+
+  insn.operands.push_back(ImmediateOffset(base, offset, shift, size));
+
+  return insn;
 }
 
 static Instruction DecodeSIMDLoadStorePair(uint32_t opcode) {
-  return UnallocatedEncoding();
+  Instruction insn;
+
+  uint8_t opc = bits(opcode, 30, 31);
+  uint8_t size = 32 << opc;
+  uint8_t op3 = bits(opcode, 23, 24);
+  uint8_t load = bit(opcode, 22);
+
+  if (opc == 0b11) {
+    return UnallocatedEncoding();
+  }
+
+  insn.operands.push_back(v(size, opcode, 0, 4));
+  insn.operands.push_back(v(size, opcode, 10, 14));
+
+  Register base = x_or_sp(64, opcode, 5, 9);
+  Immediate offset =
+      Immediate(64, sign_extend_bits(opcode, 15, 21) << (2 + bit(opcode, 31)));
+  Shift shift(Shift::kNone, 0);
+
+  ImmediateOffset address(base, offset, shift, size * 2);
+
+  if (load) {
+    insn.opcode = kSimdLdp;
+
+    if (op3 == 0b00) {  // LDNP
+      insn.opcode = kSimdLdnp;
+    } else if (op3 == 0b01) {  // LDP (post-indexed)
+      address.writeback = true;
+      address.post_index = true;
+    } else if (op3 == 0b10) {  // LDP (offset)
+      address.writeback = false;
+      address.post_index = false;
+    } else if (op3 == 0b11) {  // LDP (pre-indexed)
+      address.writeback = true;
+      address.post_index = false;
+    }
+  } else {
+    insn.opcode = kSimdStp;
+
+    if (op3 == 0b00) {  // STNP
+      insn.opcode = kSimdStnp;
+    } else if (op3 == 0b01) {  // STP (post-indexed)
+      address.writeback = true;
+      address.post_index = true;
+    } else if (op3 == 0b10) {  // STP (offset)
+      address.writeback = false;
+      address.post_index = false;
+    } else if (op3 == 0b11) {  // STP (pre-indexed)
+      address.writeback = true;
+      address.post_index = false;
+    }
+  }
+
+  insn.operands.push_back(address);
+
+  return insn;
+}
+
+static Instruction DecodeSIMDLoadStoreUnscaledImmediate(uint32_t opcode) {
+  Instruction insn;
+  uint8_t size = 8 << ((bit(opcode, 23) << 2) | bits(opcode, 30, 31));
+
+  if (bit(opcode, 22)) {
+    insn.opcode = kSimdLdr;
+  } else {
+    insn.opcode = kSimdStr;
+  }
+
+  Register base = x_or_sp(64, opcode, 5, 9);
+  Immediate offset = Immediate(64, sign_extend_bits(opcode, 12, 20));
+  Shift shift(Shift::kNone, 0);
+
+  ImmediateOffset address(base, offset, shift, size);
+
+  switch (bits(opcode, 10, 11)) {
+    case 0b00: {  // unscaled immediate
+      if (insn.opcode == kSimdStr) {
+        insn.opcode = kSimdStur;
+      } else if (insn.opcode == kSimdLdr) {
+        insn.opcode = kSimdLdur;
+      }
+    } break;
+
+    case 0b01: {  // immediate post-indexed
+      address.writeback = true;
+      address.post_index = true;
+    } break;
+
+    case 0b10: {  // unprivileged
+      if (insn.opcode == kStr) {
+        insn.opcode = kSttr;
+      } else if (insn.opcode == kLdr) {
+        insn.opcode = kLdtr;
+      }
+    } break;
+
+    case 0b11: {  // immediate pre-indexed
+      address.writeback = true;
+      address.post_index = false;
+    } break;
+  }
+
+  insn.operands.push_back(v(size, opcode, 0, 4));
+  insn.operands.push_back(address);
+
+  return insn;
+}
+
+static Instruction DecodeSIMDLoadStoreRegisterOffset(uint32_t opcode) {
+  Instruction insn;
+  uint8_t size = 8 << ((bit(opcode, 23) << 2) | bits(opcode, 30, 31));
+
+  if (bit(opcode, 22)) {
+    insn.opcode = kSimdLdr;
+  } else {
+    insn.opcode = kSimdStr;
+  }
+
+  Register base = x_or_sp(64, opcode, 5, 9);
+  Register offset = x(64, opcode, 16, 20);
+  Extend extend(Extend::kNone, bit(opcode, 12) ? bits(opcode, 30, 31) : 0);
+
+  switch (bits(opcode, 13, 15)) {
+    case 0b010: {  // UXTW
+      extend.type = Extend::kUxtw;
+    } break;
+
+    case 0b011: {  // LSL
+      extend.type = Extend::kLsl;
+    } break;
+
+    case 0b110: {  // SXTW
+      extend.type = Extend::kSxtw;
+    } break;
+
+    case 0b111: {  // SXTX
+      extend.type = Extend::kSxtx;
+    } break;
+
+    default:
+      return UnallocatedEncoding();
+  }
+
+  insn.operands.push_back(v(size, opcode, 0, 4));
+  insn.operands.push_back(RegisterOffset(base, offset, extend, size));
+
+  return insn;
+}
+
+static Instruction DecodeSIMDLoadStoreUnsignedImmediate(uint32_t opcode) {
+  Instruction insn;
+  uint8_t size = 8 << ((bit(opcode, 23) << 2) | bits(opcode, 30, 31));
+
+  if (bit(opcode, 22)) {
+    insn.opcode = kSimdLdr;
+  } else {
+    insn.opcode = kSimdStr;
+  }
+
+  Register base = x_or_sp(64, opcode, 5, 9);
+  Immediate offset =
+      Immediate(64, bits(opcode, 10, 21) << bits(opcode, 30, 31));
+  Shift shift(Shift::kNone, 0);
+
+  insn.operands.push_back(v(size, opcode, 0, 4));
+  insn.operands.push_back(ImmediateOffset(base, offset, shift, size));
+
+  return insn;
 }
 
 static Instruction DecodeLoadStoreExclusive(uint32_t opcode) {
@@ -1763,21 +1962,26 @@ std::tuple<uint64_t, uint64_t> DecodeBitMasks(uint8_t size, Immediate imms,
   return decode_bit_masks(size == 64 ? 1 : 0, imms.value, immr.value, false);
 }
 
-Instruction DecodeInstruction(uint32_t opcode) {
+Instruction DecodeInstruction(uint64_t address, uint32_t opcode) {
+  Instruction insn;
   uint32_t op0 = bits(opcode, 25, 28);
   if ((op0 & 0b1110) == 0b1000) {
-    return DecodeDataProcessingImmediate(opcode);
+    insn = DecodeDataProcessingImmediate(opcode);
   } else if ((op0 & 0b1110) == 0b1010) {
-    return DecodeBranchExceptionGeneratingSystem(opcode);
+    insn = DecodeBranchExceptionGeneratingSystem(opcode);
   } else if ((op0 & 0b0101) == 0b0100) {
-    return DecodeLoadStore(opcode);
+    insn = DecodeLoadStore(opcode);
   } else if ((op0 & 0b0111) == 0b0101) {
-    return DecodeDataProcessingRegister(opcode);
-  } else if (op0 == 0b0111 || op0 == 0b1111) {
+    insn = DecodeDataProcessingRegister(opcode);
+  } /* else if (op0 == 0b0111 || op0 == 0b1111) {
     // Data processing - SIMD and floating point
+  } */
+  else {
+    insn = UnallocatedEncoding();
   }
 
-  return UnallocatedEncoding();
+  insn.address = address;
+  return insn;
 }
 }  // namespace decoder
 }  // namespace aarch64

@@ -59,7 +59,6 @@ cc_library(
         "aarch64/translator.cpp",
     ],
     hdrs = [
-        "aarch64.h",
         "aarch64/decoder.h",
         "aarch64/emulator.h",
         "aarch64/translator.h",
@@ -79,10 +78,22 @@ cc_library(
 )
 
 cc_test(
-    name = "aarch64_test",
+    name = "immediate_test",
     size = "small",
     srcs = [
-        "test/aarch64_test.cpp",
+        "immediate_test.cpp",
+    ],
+    deps = [
+        ":reil_core",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "aarch64_decoder_test",
+    size = "small",
+    srcs = [
+        "aarch64/decoder_test.cpp",
     ],
     deps = [
         ":reil_core",
@@ -92,13 +103,14 @@ cc_test(
 )
 
 cc_test(
-    name = "immediate_test",
+    name = "aarch64_translator_test",
     size = "small",
     srcs = [
-        "test/immediate_test.cpp",
+        "aarch64/translator_test.cpp",
     ],
     deps = [
         ":reil_core",
+        ":reil_aarch64",
         "@com_google_googletest//:gtest",
     ],
 )

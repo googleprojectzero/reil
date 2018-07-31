@@ -154,11 +154,16 @@ enum Opcode {
   kStxr,
 
   // Load literal
+  kSimdLdrLiteral,
   kLdrLiteral,
   kLdrsLiteral,
   kPrfmLiteral,
 
   // Load/store pair
+  kSimdLdnp,
+  kSimdLdp,
+  kSimdStnp,
+  kSimdStp,
   kLdnp,
   kLdp,
   kLdpsw,
@@ -166,6 +171,10 @@ enum Opcode {
   kStp,
 
   // Load/store
+  kSimdLdr,
+  kSimdLdur,
+  kSimdStr,
+  kSimdStur,
   kLdr,
   kLdrs,
   kLdtr,
@@ -289,7 +298,7 @@ struct Immediate {
   uint64_t value;
 
   explicit Immediate(uint8_t size_, uint64_t value_)
-      : size(size_), value(value_) {}
+      : size(size_), value(value_ & (0xffffffffffffffffull >> (64 - size_))) {}
 };
 
 struct Register {
@@ -478,6 +487,7 @@ typedef absl::variant<Immediate, Register, SystemRegister, Shift, Extend,
     Operand;
 
 struct Instruction {
+  uint64_t address;
   enum Opcode opcode;
 
   std::vector<Operand> operands;
@@ -485,12 +495,12 @@ struct Instruction {
   ConditionCode cc;
   bool set_flags;
 
-  Instruction() : opcode(kUnallocated), set_flags(false) {}
+  Instruction() : address(0), opcode(kUnallocated), set_flags(false) {}
 };
 
 std::tuple<uint64_t, uint64_t> DecodeBitMasks(uint8_t size, Immediate imms,
                                               Immediate immr);
-Instruction DecodeInstruction(uint32_t opcode);
+Instruction DecodeInstruction(uint64_t address, uint32_t opcode);
 
 std::ostream &operator<<(std::ostream &stream, const Operand &opnd);
 std::ostream &operator<<(std::ostream &stream, const Instruction &insn);

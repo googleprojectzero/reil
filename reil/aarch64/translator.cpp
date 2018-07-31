@@ -1455,11 +1455,10 @@ bool Translation::Translate() {
   return valid();
 }
 
-NativeInstruction Translate(uint64_t address, const decoder::Instruction& di,
-                            uint32_t flags) {
+NativeInstruction Translate(const decoder::Instruction& di, uint32_t flags) {
   NativeInstruction ni;
 
-  ni.address = address;
+  ni.address = di.address;
   ni.size = 4;
 
   // generate mnemonic if necessary
@@ -1492,9 +1491,9 @@ NativeInstruction Translate(uint64_t address, const uint8_t* bytes,
   }
 
   // decode instruction
-  auto di = decoder::DecodeInstruction(opcode);
+  auto di = decoder::DecodeInstruction(address, opcode);
 
-  return Translate(address, di, flags);
+  return Translate(di, flags);
 }
 }  // namespace aarch64
 }  // namespace reil
