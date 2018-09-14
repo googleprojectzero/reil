@@ -145,7 +145,11 @@ Operand Translation::Register(decoder::Register::Name name) {
   } else if (name == decoder::Register::kSp) {
     return sp_;
   } else if (name == decoder::Register::kPc) {
-    return pc_;
+    if (flags_ & kPositionIndependent) {
+      return pc_;
+    } else {
+      return Imm64(di_.address);
+    }
   } else {
     valid_ = false;
     return Imm64(0);
@@ -540,7 +544,8 @@ std::tuple<Operand, Operand> Translation::DecodeBitMasks(uint64_t immN,
 }
 
 void Translation::TranslatePcRelativeAddressing() {
-  auto tmp1 = Str(Add(pc_, ApplyShift(2, GetOperand(1))), Tmp(64));
+  auto pc = Register(decoder::Register::kPc);
+  auto tmp1 = Str(Add(pc, ApplyShift(2, GetOperand(1))), Tmp(64));
   SetOperand(0, tmp1);
 }
 
@@ -701,7 +706,8 @@ void Translation::TranslateExtract() {
 }
 
 void Translation::TranslateConditionalBranch() {
-  Jump(ConditionHolds(), Str(Add(pc_, GetOperand(0)), Tmp(64)));
+  auto pc = Register(decoder::Register::kPc);
+  Jump(ConditionHolds(), Str(Add(pc, GetOperand(0)), Tmp(64)));
 }
 
 void Translation::TranslateExceptionGeneration() {
@@ -787,7 +793,8 @@ void Translation::TranslateBranchRegister() {
     case decoder::kBlrab:
     case decoder::kBlraaz:
     case decoder::kBlrabz: {
-      Str(Add(pc_, Imm64(4)), Register(decoder::Register::kX30));
+      auto pc = Register(decoder::Register::kPc);
+      Str(Add(pc, Imm64(4)), Register(decoder::Register::kX30));
       Call(GetOperand(0));
     } break;
 
@@ -812,14 +819,15 @@ void Translation::TranslateBranchRegister() {
 }
 
 void Translation::TranslateBranchImmediate() {
+  auto pc = Register(decoder::Register::kPc);
   switch (di_.opcode) {
     case decoder::kB: {
-      Jump(Str(Add(pc_, GetOperand(0)), Tmp(64)));
+      Jump(Str(Add(pc, GetOperand(0)), Tmp(64)));
     } break;
 
     case decoder::kBl: {
-      Str(Add(pc_, Imm64(4)), Register(decoder::Register::kX30));
-      Call(Str(Add(pc_, GetOperand(0)), Tmp(64)));
+      Str(Add(pc, Imm64(4)), Register(decoder::Register::kX30));
+      Call(Str(Add(pc, GetOperand(0)), Tmp(64)));
     } break;
 
     default: {
@@ -830,6 +838,7 @@ void Translation::TranslateBranchImmediate() {
 }
 
 void Translation::TranslateCompareAndBranch() {
+  auto pc = Register(decoder::Register::kPc);
   Operand cond;
 
   if (di_.opcode == decoder::kCbz) {
@@ -838,10 +847,11 @@ void Translation::TranslateCompareAndBranch() {
     cond = GetOperand(0);
   }
 
-  Jump(cond, Str(Add(pc_, Str(GetOperand(1), Tmp(64))), Tmp(64)));
+  Jump(cond, Str(Add(pc, Str(GetOperand(1), Tmp(64))), Tmp(64)));
 }
 
 void Translation::TranslateTestAndBranch() {
+  auto pc = Register(decoder::Register::kPc);
   auto tmp1 = Str(GetOperand(0), Tmp(64));
   auto tmp2 = And(tmp1, Lshl(Imm64(1), GetOperand(1)));
   Operand cond;
@@ -855,7 +865,7 @@ void Translation::TranslateTestAndBranch() {
     return;
   }
 
-  Jump(cond, Str(Add(pc_, Str(GetOperand(2), Tmp(64))), Tmp(64)));
+  Jump(cond, Str(Add(pc, Str(GetOperand(2), Tmp(64))), Tmp(64)));
 }
 
 void Translation::TranslateLoadStoreExclusive() {
@@ -1455,7 +1465,31 @@ bool Translation::Translate() {
   return valid();
 }
 
-NativeInstruction Translate(const decoder::Instruction& di, uint32_t flags) {
+std::string RegisterName(uint8_t index) {
+  static std::vector<std::string> register_names_({
+    "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
+    "x12", "x13", "x14", "x15", "x16", "x17", "x18", "x19", "x20", "x21", "x22",
+    "x23", "x24", "x25", "x26", "x27", "x28", "x29", "x30", "xzr", 
+
+    "sp", 
+    "pc",
+
+    "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11",
+    "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22",
+    "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
+
+    "n", "z", "c", "v",
+  });
+
+  if (index < register_names_.size()) {
+    return register_names_[index];
+  }
+
+
+  return "invalid_register";
+}
+
+NativeInstruction TranslateInstruction(const decoder::Instruction& di, uint32_t flags) {
   NativeInstruction ni;
 
   ni.address = di.address;
@@ -1472,17 +1506,19 @@ NativeInstruction Translate(const decoder::Instruction& di, uint32_t flags) {
   Translation translation(flags, di);
   if (translation.Translate()) {
     ni.reil = translation.Finalise();
+  } else {
+    ni.reil.push_back(Unkn());
   }
 
   return ni;
 }
 
-NativeInstruction Translate(uint64_t address, std::vector<uint8_t> bytes,
+NativeInstruction TranslateInstruction(uint64_t address, std::vector<uint8_t> bytes,
                             uint32_t flags) {
-  return Translate(address, bytes.data(), bytes.size(), flags);
+  return TranslateInstruction(address, bytes.data(), bytes.size(), flags);
 }
 
-NativeInstruction Translate(uint64_t address, const uint8_t* bytes,
+NativeInstruction TranslateInstruction(uint64_t address, const uint8_t* bytes,
                             size_t bytes_len, uint32_t flags) {
   // read opcode
   uint32_t opcode = 0;
@@ -1493,7 +1529,40 @@ NativeInstruction Translate(uint64_t address, const uint8_t* bytes,
   // decode instruction
   auto di = decoder::DecodeInstruction(address, opcode);
 
-  return Translate(di, flags);
+  return TranslateInstruction(di, flags);
+}
+
+NativeBasicBlock TranslateBasicBlock(uint64_t address, std::vector<uint8_t> bytes,
+                            uint32_t flags) {
+  return TranslateBasicBlock(address, bytes.data(), bytes.size(), flags);
+}
+
+NativeBasicBlock TranslateBasicBlock(uint64_t address, const uint8_t* bytes,
+                            size_t bytes_len, uint32_t flags) {
+  NativeBasicBlock nbb;
+  nbb.address = address;
+  nbb.size = 0;
+
+  // read opcode
+  uint32_t opcode = 0;
+  while (bytes_len >= sizeof(opcode)) {
+    memcpy(&opcode, bytes, sizeof(opcode));
+    nbb.size += sizeof(opcode);
+
+    // decode instruction
+    auto di = decoder::DecodeInstruction(address, opcode);
+
+    nbb.instructions.push_back(TranslateInstruction(di, flags));
+
+    if (di.opcode == decoder::kUnallocated
+        || di.opcode == decoder::kBCond 
+        || (decoder::kBlr <= di.opcode && di.opcode <= decoder::kTbz)) {
+      // end of basic block
+      break;
+    }
+  }
+
+  return nbb;
 }
 }  // namespace aarch64
 }  // namespace reil

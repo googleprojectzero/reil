@@ -1874,8 +1874,6 @@ static Instruction DecodeConditionalSelect(uint32_t opcode) {
     } break;
 
     default:
-      fprintf(stderr, "%08x\n",
-              ((bit(opcode, 30) << 2) | bits(opcode, 10, 11)));
       return UnallocatedEncoding();
   }
 

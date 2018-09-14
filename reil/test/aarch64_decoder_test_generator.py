@@ -92,7 +92,7 @@ def write_testcase(file, testcase):
 
   file.write('''TEST(AArch64Decoder, {name}) {{
   uint32_t opcode = 0x{instruction_dword};
-  aarch64::decoder::Instruction insn = aarch64::decoder::DecodeInstruction(opcode);
+  aarch64::decoder::Instruction insn = aarch64::decoder::DecodeInstruction(0x1000, opcode);
 
   std::cerr << insn << std::endl;
 
@@ -121,11 +121,9 @@ testcases = [
   test('LdaxrBug1', 'ldaxr x8, [x20]', [
       ('insn.opcode', 'aarch64::decoder::kLdaxr'),
     ]),
-
   test('SimdLdrLiteral', 'ldr q0, #0', [
       ('insn.opcode', 'aarch64::decoder::kSimdLdrLiteral'),
     ]),
-
   test('SimdLdp', 'ldp q0, q1, [x0]', [
       ('insn.opcode', 'aarch64::decoder::kSimdLdp'),
     ]),
@@ -153,11 +151,13 @@ testcases = [
 ]
 
 def main():
-  with open('aarch64_decoder_test.cpp', 'w') as tmp:
+  with open('aarch64/decoder_test.cpp', 'w') as tmp:
     write_header(tmp)
     for testcase in testcases:
       write_testcase(tmp, testcase)
     write_footer(tmp)
+  call(['clang-format', '-i', '-style=Google', 'aarch64/decoder_test.cpp'])
+
 
 if __name__ == '__main__':
   main()

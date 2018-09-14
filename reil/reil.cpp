@@ -306,12 +306,12 @@ std::ostream& operator<<(std::ostream& stream, const Operand& opnd) {
 
     case kRegister: {
       Register reg = absl::get<Register>(opnd);
-      stream << "(" << reg.name << ", " << reg.size << ")";
+      stream << "(" << reg.name << ", " << std::dec << reg.size << ")";
     } break;
 
     case kTemporary: {
       Temporary tmp = absl::get<Temporary>(opnd);
-      stream << "(t" << tmp.index << ", " << tmp.size << ")";
+      stream << "(t" << std::dec << tmp.index << ", " << tmp.size << ")";
     } break;
 
     case kLabel: {
@@ -460,6 +460,13 @@ std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni) {
   //  hex(stream, i);
   //  stream << " " << ni.reil[i] << std::endl;
   //}
+  return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, const NativeBasicBlock& nb) {
+  for (const auto& ni : nb.instructions) {
+    stream << ni << std::endl;
+  }
   return stream;
 }
 }  // namespace reil

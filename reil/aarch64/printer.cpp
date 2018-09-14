@@ -802,16 +802,10 @@ static void PrintBranchRegister(std::ostream& stream, const Instruction& insn) {
 
     case kRetaa: {
       stream << "retaa";
-      if (rn.name != Register::kX30) {
-        stream << " " << rn;
-      }
     } break;
 
     case kRetab: {
       stream << "retab";
-      if (rn.name != Register::kX30) {
-        stream << " " << rn;
-      }
     } break;
 
     case kEret: {
@@ -1551,7 +1545,6 @@ static void PrintDataProcessingThreeSource(std::ostream& stream,
 }
 
 std::ostream& operator<<(std::ostream& stream, const Instruction& insn) {
-  stream << std::hex << insn.address << ": ";
   if (insn.opcode <= kAdrp) {
     PrintPcRelativeAddressing(stream, insn);
   } else if (insn.opcode <= kSubImmediate) {

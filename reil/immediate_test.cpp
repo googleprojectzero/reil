@@ -163,6 +163,72 @@ TEST(Immediate, LogicalShiftRight) {
   }
 }
 
+TEST(Immediate, Equal) {
+  for (int i = 0; i < 128; ++i) {
+    uint64_t a = prng();
+    uint64_t b = prng();
+    bool c = a == b;
+    bool d = a != b;
+
+    Immediate A = Immediate(64, a);
+    Immediate B = Immediate(64, b);
+    bool C = A == B;
+    bool D = A != B;
+
+    EXPECT_EQ(c, C);
+    EXPECT_EQ(d, D);
+  }
+}
+
+TEST(Immediate, LessThan) {
+  for (int i = 0; i < 128; ++i) {
+    uint64_t a = prng();
+    uint64_t b = prng();
+    bool c = a < b;
+    bool d = b < a;
+
+    Immediate A = Immediate(64, a);
+    Immediate B = Immediate(64, b);
+    bool C = A < B;
+    bool D = B < A;
+
+    EXPECT_EQ(c, C);
+    EXPECT_EQ(d, D);
+  }
+}
+
+TEST(Immediate, LessThanBug) {
+  uint64_t a = 0x10;
+  uint64_t b = 0x11;
+  bool c = a < b;
+  bool d = a > b;
+
+  Immediate A = Immediate(64, a);
+  Immediate B = Immediate(64, b);
+  bool C = A < B;
+  bool D = A > B;
+
+  EXPECT_EQ(c, C);
+  EXPECT_EQ(d, D);
+}
+
+TEST(Immediate, LessThanOrEqual) {
+  for (int i = 0; i < 128; ++i) {
+    uint64_t a = prng();
+    uint64_t b = prng();
+    bool c = a <= b;
+    bool d = b <= a;
+
+    Immediate A = Immediate(64, a);
+    Immediate B = Immediate(64, b);
+    bool C = A <= B;
+    bool D = B <= A;
+
+    EXPECT_EQ(c, C);
+    EXPECT_EQ(d, D);
+  }
+}
+
 }  // namespace reil
 
 int main(int argc, char** argv) {

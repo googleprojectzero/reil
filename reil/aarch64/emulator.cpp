@@ -102,7 +102,7 @@ bool Emulator::SingleStep() {
   auto bytes = GetMemory(pc, 4);
 
   if (bytes.size() == 4) {
-    NativeInstruction ni = Translate(pc, bytes, flags_);
+    NativeInstruction ni = TranslateInstruction(pc, bytes, flags_);
     if (ni.reil.size()) {
       pc = interpreter_.Execute(ni);
       SetRegister(kPc, Immediate(64, pc));

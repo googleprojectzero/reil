@@ -106,11 +106,18 @@ enum Registers {
   kV,
 };
 
-NativeInstruction Translate(const decoder::Instruction& di,
+std::string RegisterName(uint8_t index);
+
+NativeInstruction TranslateInstruction(const decoder::Instruction& di,
                             uint32_t flags = kDefaultFlags);
-NativeInstruction Translate(uint64_t address, std::vector<uint8_t> bytes,
+NativeInstruction TranslateInstruction(uint64_t address, std::vector<uint8_t> bytes,
                             uint32_t flags = kDefaultFlags);
-NativeInstruction Translate(uint64_t address, const uint8_t* bytes,
+NativeInstruction TranslateInstruction(uint64_t address, const uint8_t* bytes,
+                            size_t bytes_len, uint32_t flags = kDefaultFlags);
+
+NativeBasicBlock TranslateBasicBlock(uint64_t address, std::vector<uint8_t> bytes,
+                            uint32_t flags = kDefaultFlags);
+NativeBasicBlock TranslateBasicBlock(uint64_t address, const uint8_t* bytes,
                             size_t bytes_len, uint32_t flags = kDefaultFlags);
 }  // namespace aarch64
 }  // namespace reil

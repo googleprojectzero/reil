@@ -121,7 +121,7 @@ bool Immediate::operator<(const Immediate &other) const {
   for (uint16_t i = 1; i <= byte_width; ++i) {
     if (bytes_[byte_width - i] < other.bytes_[byte_width - i]) {
       return true;
-    } else if (bytes_[byte_width - i] >= other.bytes_[byte_width - i]) {
+    } else if (bytes_[byte_width - i] > other.bytes_[byte_width - i]) {
       return false;
     }
   }
