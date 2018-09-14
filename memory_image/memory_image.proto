@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+package reil.proto;
+
+message MemoryImage {
+	message Mapping {
+		required uint64 address = 1;
+		required bytes  data = 2;
+		
+		required bool readable = 4;
+		required bool writable = 5;
+		required bool executable = 6;
+
+		optional string name = 3;
+	};
+
+	optional string executable_name = 1;
+	optional string executable_id = 2;
+	optional string architecture_name = 3;
+
+	repeated Mapping mappings = 4;
+	map<uint64, string> symbols = 5;
+}
