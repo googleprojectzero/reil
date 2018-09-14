@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "memory_image/memory_image.h"
+
 #include <fstream>
 
-#include "memory_image/memory_image.h"
-#include "memory_image/memory_image.pb.h"
-
 #include "absl/memory/memory.h"
+#include "memory_image/memory_image.pb.h"
 #include "glog/logging.h"
 
 namespace reil {

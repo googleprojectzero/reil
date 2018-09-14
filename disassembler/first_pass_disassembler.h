@@ -21,7 +21,6 @@
 
 #include "control_flow_graph/control_flow_graph.h"
 #include "memory_image/memory_image.h"
-
 #include "reil/aarch64.h"
 #include "reil/reil.h"
 

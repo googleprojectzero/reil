@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Description:
-#   A disassembler/control flow recovery tool using the REIL translator.
+#   A static analysis framework using the REIL intermediate language
 
 licenses(["notice"])  # Apache 2.0
 
@@ -22,30 +22,19 @@ package(
 )
 
 cc_library(
-    name = "disassembler",
-    srcs = [
-        "first_pass_disassembler.cpp",
-        "function_scan.cpp",
-    ],
+    name = "analysis",
     hdrs = [
-        "first_pass_disassembler.h",
-        "function_scan.h",
+        "instruction_graph.h",
+        "solver.h"
+    ],
+    srcs = [
+        "instruction_graph.cpp",
     ],
     deps = [
         "//control_flow_graph:control_flow_graph",
         "//memory_image:memory_image",
         "//reil:reil",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_binary(
-    name = "disasm",
-    srcs = [
-        "main.cpp",
-    ],
-    deps = [
-        ":disassembler",
+        "@com_google_abseil//absl/types:span",
     ],
 )
 
@@ -53,33 +42,21 @@ filegroup(
     name = "test_data",
     srcs = glob([
         "test_data/*.mem",
+        "test_data/*.cfg",
     ]),
 )
 
 cc_test(
-    name = "function_scan_test",
+    name = "solver_test",
     srcs = [
-        "function_scan_test.cpp",
+        "solver_test.cpp",
     ],
     data = [
         ":test_data",
     ],
     deps = [
-        ":disassembler",
-        "@com_google_googletest//:gtest",
-    ],
-)
-
-cc_test(
-    name = "first_pass_disassembler_test",
-    srcs = [
-        "first_pass_disassembler_test.cpp",
-    ],
-    data = [
-        ":test_data",
-    ],
-    deps = [
-        ":disassembler",
+        ":analysis",
+        "//disassembler:disassembler",
         "@com_google_googletest//:gtest",
     ],
 )

@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "memory_image/memory_image.h"
+#include "disassembler/function_scan.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
-
-#include "memory_image/memory_image.h"
-
-#include "disassembler/function_scan.h"
 
 namespace reil {
 namespace disassembler {
@@ -41,7 +39,7 @@ namespace test {
 */
 TEST(FunctionScan, Simple) {
   auto memory_image =
-      MemoryImage::Load("disassembler/test_data/simple.memory_image");
+      MemoryImage::Load("disassembler/test_data/simple.mem");
   ASSERT_NE(memory_image, nullptr);
 
   std::set<uint64_t> results = FunctionScan(*memory_image);
@@ -82,7 +80,7 @@ TEST(FunctionScan, Simple) {
 */
 TEST(FunctionScan, SimdStpPrologue) {
   auto memory_image = MemoryImage::Load(
-      "disassembler/test_data/simd_stp_prologue.memory_image");
+      "disassembler/test_data/simd_stp_prologue.mem");
   ASSERT_NE(memory_image, nullptr);
 
   std::set<uint64_t> results = FunctionScan(*memory_image);

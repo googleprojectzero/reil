@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     for (auto& function_iter : functions) {
       std::stringstream path_stream;
       path_stream << argv[2] << "/" << std::hex << function_iter.first
-                  << ".control_flow_graph";
+                  << ".cfg";
       function_iter.second->Save(path_stream.str());
     }
   }

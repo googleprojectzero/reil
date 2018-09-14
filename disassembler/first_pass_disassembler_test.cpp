@@ -15,13 +15,11 @@
 #include <fstream>
 #include <iostream>
 
+#include "control_flow_graph/control_flow_graph.h"
+#include "disassembler/first_pass_disassembler.h"
+#include "memory_image/memory_image.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
-
-#include "control_flow_graph/control_flow_graph.h"
-#include "memory_image/memory_image.h"
-
-#include "disassembler/first_pass_disassembler.h"
 
 namespace reil {
 namespace disassembler {
@@ -45,7 +43,7 @@ namespace test {
 */
 TEST(FirstPassDisassembler, Simple) {
   std::shared_ptr<MemoryImage> memory_image =
-      MemoryImage::Load("disassembler/test_data/simple.memory_image");
+      MemoryImage::Load("disassembler/test_data/simple.mem");
   ASSERT_NE(memory_image, nullptr);
 
   std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> functions;
@@ -57,7 +55,7 @@ TEST(FirstPassDisassembler, Simple) {
   functions = disassembler.AnalyseAllFunctions();
 
   function = functions[0x400078];
-  EXPECT_EQ(function->outgoing_edges().size(), 4);
+  EXPECT_EQ(function->outgoing_edges().size(), 5);
 
   edges = function->outgoing_edges(0x400084);
   EXPECT_EQ(edges.size(), 2);
@@ -78,7 +76,7 @@ TEST(FirstPassDisassembler, Simple) {
   EXPECT_EQ(edges.count(Edge(0x400098, 0, kNativeReturn)), 1);
 
   function = functions[0x40009c];
-  EXPECT_EQ(function->outgoing_edges().size(), 1);
+  EXPECT_EQ(function->outgoing_edges().size(), 2);
 
   edges = function->outgoing_edges(0x40009c);
   EXPECT_EQ(edges.size(), 1);
@@ -97,7 +95,7 @@ TEST(FirstPassDisassembler, Simple) {
 */
 TEST(FirstPassDisassembler, BlockSplit) {
   std::shared_ptr<MemoryImage> memory_image =
-      MemoryImage::Load("disassembler/test_data/block_split.memory_image");
+      MemoryImage::Load("disassembler/test_data/block_split.mem");
   ASSERT_NE(memory_image, nullptr);
 
   std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> functions;
@@ -109,7 +107,7 @@ TEST(FirstPassDisassembler, BlockSplit) {
   functions = disassembler.AnalyseAllFunctions();
 
   function = functions[0x400078];
-  EXPECT_EQ(function->outgoing_edges().size(), 3);
+  EXPECT_EQ(function->outgoing_edges().size(), 4);
 
   edges = function->outgoing_edges(0x400080);
   EXPECT_EQ(edges.size(), 1);

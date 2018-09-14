@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "control_flow_graph/control_flow_graph.h"
+
 #include <fstream>
 
 #include "absl/memory/memory.h"
-#include "control_flow_graph/control_flow_graph.h"
 #include "control_flow_graph/control_flow_graph.pb.h"
 #include "glog/logging.h"
 
@@ -95,10 +96,7 @@ std::ostream& operator<<(std::ostream& stream, const Edge& edge) {
 ControlFlowGraph::~ControlFlowGraph() {}
 
 void ControlFlowGraph::AddEdge(const Edge& edge) {
-  VLOG(4) << edge;
-  if (edge.source != 0) {
-    outgoing_edges_[edge.source].insert(edge);
-  }
+  outgoing_edges_[edge.source].insert(edge);
   if (edge.target != 0) {
     incoming_edges_[edge.target].insert(edge);
   }
