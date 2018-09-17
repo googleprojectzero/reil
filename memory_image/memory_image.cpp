@@ -66,7 +66,7 @@ std::pair<const uint8_t*, uint64_t> MemoryImage::Read(uint64_t address) {
   for (auto& mapping : mappings_) {
     if (mapping.address <= address) {
       uint64_t offset = address - mapping.address;
-      if (offset <= mapping.data.size()) {
+      if (offset < mapping.data.size()) {
         result.first = (const uint8_t*)(&mapping.data[offset]);
         result.second = mapping.data.size() - offset;
       }
