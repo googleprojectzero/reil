@@ -50,7 +50,6 @@ class Interpreter {
   void Undef(const Instruction &ri);
   void Unkn(const Instruction &ri);
   void Xor(const Instruction &ri);
-  void Bisnz(const Instruction &ri);
   void Equ(const Instruction &ri);
   void Lshl(const Instruction &ri);
   void Lshr(const Instruction &ri);

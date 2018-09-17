@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
     first_pass.QueueFunction(heuristic_function);
   }
 
-  std::map<uint64_t, std::shared_ptr<reil::ControlFlowGraph>> functions =
+  std::map<uint64_t, std::unique_ptr<reil::ControlFlowGraph>> functions =
       first_pass.AnalyseAllFunctions();
 
   if (argc >= 3) {

@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "analysis/instruction_graph.h"
+#include "control_flow_graph/instruction_graph.h"
 
 #include "absl/memory/memory.h"
 #include "glog/logging.h"
 #include "reil/aarch64.h"
 
 namespace reil {
-namespace analysis {
 InstructionGraph::InstructionGraph(std::shared_ptr<MemoryImage> memory_image,
                                    size_t cache_size)
     : memory_image_(memory_image), ring_cache_(cache_size) {}
@@ -197,5 +196,16 @@ std::unique_ptr<InstructionGraph> InstructionGraph::Create(
   }
   return nullptr;
 }
-}  // namespace analysis
+
+std::unique_ptr<InstructionGraph> InstructionGraph::Load(
+    std::shared_ptr<MemoryImage> memory_image, std::string path, size_t cache_size) {
+  auto result = Create(memory_image, cache_size);
+  if (result) {
+    std::unique_ptr<ControlFlowGraph> cfg = ControlFlowGraph::Load(path);
+    if (cfg) {
+      result->Add(*cfg);
+    }
+  }
+  return result;
+}
 }  // namespace reil

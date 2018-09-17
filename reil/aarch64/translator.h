@@ -67,6 +67,11 @@ enum Registers {
   kSp,
   kPc,
 
+  kN,
+  kZ,
+  kC,
+  kV,
+
   kV0,
   kV1,
   kV2,
@@ -99,11 +104,6 @@ enum Registers {
   kV29,
   kV30,
   kV31,
-
-  kN,
-  kZ,
-  kC,
-  kV,
 };
 
 std::string RegisterName(uint8_t index);

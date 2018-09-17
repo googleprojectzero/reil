@@ -24,11 +24,14 @@ package(
 cc_library(
     name = "analysis",
     hdrs = [
-        "instruction_graph.h",
+        "dataflow.h",
+        "expression.h",
+        "refcounted.h",
         "solver.h"
     ],
     srcs = [
-        "instruction_graph.cpp",
+        "dataflow.cpp",
+        "expression.cpp",
     ],
     deps = [
         "//control_flow_graph:control_flow_graph",
@@ -59,4 +62,21 @@ cc_test(
         "//disassembler:disassembler",
         "@com_google_googletest//:gtest",
     ],
+    size = "small",
+)
+
+cc_test(
+    name = "dataflow_test",
+    srcs = [
+        "dataflow_test.cpp",
+    ],
+    data = [
+        ":test_data",
+    ],
+    deps = [
+        ":analysis",
+        "//disassembler:disassembler",
+        "@com_google_googletest//:gtest",
+    ],
+    size = "small",
 )

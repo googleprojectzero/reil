@@ -18,8 +18,9 @@
 #include <sstream>
 
 #include "absl/memory/memory.h"
+#include "absl/types/span.h"
 #include "analysis/solver.h"
-#include "control_flow_graph/control_flow_graph.h"
+#include "control_flow_graph/instruction_graph.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
 #include "memory_image/memory_image.h"
@@ -27,27 +28,22 @@
 namespace reil {
 namespace analysis {
 namespace test {
-typedef std::set<std::string> WrittenRegisters;
-
-std::shared_ptr<WrittenRegisters> Merge(
-    absl::Span<const std::shared_ptr<WrittenRegisters>> states) {
-  std::shared_ptr<WrittenRegisters> output =
-      std::make_shared<WrittenRegisters>();
-  for (auto& state : states) {
-    output->insert(state->cbegin(), state->cend());
+std::set<std::string> Merge(
+    absl::Span<const std::set<std::string>*> in_states) {
+  std::set<std::string> out_state;
+  for (auto& in_state : in_states) {
+    out_state.insert(in_state->cbegin(), in_state->cend());
   }
-  return output;
+  return out_state;
 }
 
-std::shared_ptr<WrittenRegisters> Transform(
+std::set<std::string> Transform(
     const Edge& edge, const Instruction& ri,
-    std::shared_ptr<WrittenRegisters> in_state) {
-  std::shared_ptr<WrittenRegisters> out_state = in_state;
+    const std::set<std::string>& in_state) {
+  std::set<std::string> out_state = in_state;
   switch (ri.opcode) {
     case Opcode::Add:
     case Opcode::And:
-    case Opcode::Bisz:
-    case Opcode::Bsh:
     case Opcode::Div:
     case Opcode::Ldm:
     case Opcode::Mod:
@@ -56,7 +52,6 @@ std::shared_ptr<WrittenRegisters> Transform(
     case Opcode::Str:
     case Opcode::Sub:
     case Opcode::Xor:
-    case Opcode::Bisnz:
     case Opcode::Equ:
     case Opcode::Lshl:
     case Opcode::Lshr:
@@ -65,9 +60,8 @@ std::shared_ptr<WrittenRegisters> Transform(
     case Opcode::Ite: {
       if (ri.output.index() == kRegister) {
         Register reg = absl::get<Register>(ri.output);
-        if (0 == out_state->count(reg.name)) {
-          out_state = std::make_shared<WrittenRegisters>(*in_state);
-          out_state->insert(reg.name);
+        if (0 == out_state.count(reg.name)) {
+          out_state.insert(reg.name);
         }
       }
     }
@@ -79,7 +73,7 @@ std::shared_ptr<WrittenRegisters> Transform(
   return out_state;
 }
 
-bool Compare(const WrittenRegisters& lhs, const WrittenRegisters& rhs) {
+bool Compare(const std::set<std::string>& lhs, const std::set<std::string>& rhs) {
   if (rhs.size() < lhs.size()) {
     return false;
   }
@@ -93,7 +87,7 @@ bool Compare(const WrittenRegisters& lhs, const WrittenRegisters& rhs) {
   return true;
 }
 
-std::string Print(const WrittenRegisters& wrs) {
+std::string Print(const std::set<std::string>& wrs) {
   std::stringstream stream;
   stream << "{";
   for (auto& wr : wrs) {
@@ -120,28 +114,22 @@ TEST(Solver, LiteralArithmetic) {
       MemoryImage::Load("analysis/test_data/literal_arithmetic.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  std::shared_ptr<ControlFlowGraph> function =
-      ControlFlowGraph::Load("analysis/test_data/literal_arithmetic.cfg");
-  ASSERT_NE(function, nullptr);
-
   std::shared_ptr<InstructionGraph> instruction_graph =
-      InstructionGraph::Create(memory_image);
-  instruction_graph->Add(*function.get());
+      InstructionGraph::Load(memory_image, "analysis/test_data/literal_arithmetic.cfg");
+  ASSERT_NE(instruction_graph, nullptr);
 
-  std::map<Edge, std::shared_ptr<WrittenRegisters>> edge_states;
-  edge_states[Edge(0, 0x400078, kNativeCall)] =
-      std::make_shared<WrittenRegisters>();
-  ASSERT_EQ(Solve<WrittenRegisters>(instruction_graph, edge_states, Merge,
+  std::map<Edge, std::set<std::string>> edge_states;
+  edge_states[Edge(0, 0x400078, kNativeCall)];
+  ASSERT_EQ(Solve<std::set<std::string>>(instruction_graph, edge_states, Merge,
                                     Transform, Compare, Print),
             true);
 
-  auto end_state = edge_states[Edge(0x40008c, 0, kNativeReturn)];
-  ASSERT_NE(end_state, nullptr);
-  EXPECT_EQ(end_state->size(), 4);
-  EXPECT_EQ(end_state->count("x0"), 1);
-  EXPECT_EQ(end_state->count("x1"), 1);
-  EXPECT_EQ(end_state->count("x29"), 1);
-  EXPECT_EQ(end_state->count("sp"), 1);
+  auto& end_state = edge_states[Edge(0x40008c, 0, kNativeReturn)];
+  EXPECT_EQ(end_state.size(), 4);
+  EXPECT_EQ(end_state.count("x0"), 1);
+  EXPECT_EQ(end_state.count("x1"), 1);
+  EXPECT_EQ(end_state.count("x29"), 1);
+  EXPECT_EQ(end_state.count("sp"), 1);
 }
 
 /*
@@ -163,32 +151,26 @@ TEST(Solver, Loop) {
       MemoryImage::Load("analysis/test_data/loop.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  std::shared_ptr<ControlFlowGraph> function =
-      ControlFlowGraph::Load("analysis/test_data/loop.cfg");
-  ASSERT_NE(function, nullptr);
-
   std::shared_ptr<InstructionGraph> instruction_graph =
-      InstructionGraph::Create(memory_image);
-  instruction_graph->Add(*function.get());
+      InstructionGraph::Load(memory_image, "analysis/test_data/loop.cfg");
+  ASSERT_NE(instruction_graph, nullptr);
 
-  std::map<Edge, std::shared_ptr<WrittenRegisters>> edge_states;
-  edge_states[Edge(0, 0x400078, kNativeCall)] =
-      std::make_shared<WrittenRegisters>();
-  ASSERT_EQ(Solve<WrittenRegisters>(instruction_graph, edge_states, Merge,
+  std::map<Edge, std::set<std::string>> edge_states;
+  edge_states[Edge(0, 0x400078, kNativeCall)];
+  ASSERT_EQ(Solve<std::set<std::string>>(instruction_graph, edge_states, Merge,
                                     Transform, Compare, Print),
             true);
 
-  auto end_state = edge_states[Edge(0x400098, 0, kNativeReturn)];
-  ASSERT_NE(end_state, nullptr);
-  EXPECT_EQ(end_state->size(), 8);
-  EXPECT_EQ(end_state->count("x0"), 1);
-  EXPECT_EQ(end_state->count("x29"), 1);
-  EXPECT_EQ(end_state->count("x30"), 1);
-  EXPECT_EQ(end_state->count("sp"), 1);
-  EXPECT_EQ(end_state->count("n"), 1);
-  EXPECT_EQ(end_state->count("c"), 1);
-  EXPECT_EQ(end_state->count("z"), 1);
-  EXPECT_EQ(end_state->count("v"), 1);
+  auto& end_state = edge_states[Edge(0x400098, 0, kNativeReturn)];
+  EXPECT_EQ(end_state.size(), 8);
+  EXPECT_EQ(end_state.count("x0"), 1);
+  EXPECT_EQ(end_state.count("x29"), 1);
+  EXPECT_EQ(end_state.count("x30"), 1);
+  EXPECT_EQ(end_state.count("sp"), 1);
+  EXPECT_EQ(end_state.count("n"), 1);
+  EXPECT_EQ(end_state.count("c"), 1);
+  EXPECT_EQ(end_state.count("z"), 1);
+  EXPECT_EQ(end_state.count("v"), 1);
 }
 }  // namespace test
 }  // namespace analysis

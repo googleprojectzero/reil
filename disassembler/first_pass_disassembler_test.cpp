@@ -46,15 +46,15 @@ TEST(FirstPassDisassembler, Simple) {
       MemoryImage::Load("disassembler/test_data/simple.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> functions;
-  std::shared_ptr<ControlFlowGraph> function;
+  std::map<uint64_t, std::unique_ptr<ControlFlowGraph>> functions;
+  ControlFlowGraph* function;
   std::set<Edge> edges;
 
   FirstPassDisassembler disassembler(memory_image);
   disassembler.QueueFunction(0x400078);
   functions = disassembler.AnalyseAllFunctions();
 
-  function = functions[0x400078];
+  function = functions[0x400078].get();
   EXPECT_EQ(function->outgoing_edges().size(), 5);
 
   edges = function->outgoing_edges(0x400084);
@@ -75,7 +75,7 @@ TEST(FirstPassDisassembler, Simple) {
   EXPECT_EQ(edges.size(), 1);
   EXPECT_EQ(edges.count(Edge(0x400098, 0, kNativeReturn)), 1);
 
-  function = functions[0x40009c];
+  function = functions[0x40009c].get();
   EXPECT_EQ(function->outgoing_edges().size(), 2);
 
   edges = function->outgoing_edges(0x40009c);
@@ -98,15 +98,15 @@ TEST(FirstPassDisassembler, BlockSplit) {
       MemoryImage::Load("disassembler/test_data/block_split.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> functions;
-  std::shared_ptr<ControlFlowGraph> function;
+  std::map<uint64_t, std::unique_ptr<ControlFlowGraph>> functions;
+  ControlFlowGraph* function;
   std::set<Edge> edges;
 
   FirstPassDisassembler disassembler(memory_image);
   disassembler.QueueFunction(0x400078);
   functions = disassembler.AnalyseAllFunctions();
 
-  function = functions[0x400078];
+  function = functions[0x400078].get();
   EXPECT_EQ(function->outgoing_edges().size(), 4);
 
   edges = function->outgoing_edges(0x400080);

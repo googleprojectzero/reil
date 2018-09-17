@@ -19,6 +19,7 @@
 #include <set>
 #include <vector>
 
+#include "absl/memory/memory.h"
 #include "control_flow_graph/control_flow_graph.h"
 #include "memory_image/memory_image.h"
 #include "reil/aarch64.h"
@@ -29,12 +30,12 @@ namespace disassembler {
 class FirstPassDisassembler {
  private:
   std::shared_ptr<MemoryImage> memory_image_;
-  std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> functions_;
+  std::map<uint64_t, std::unique_ptr<ControlFlowGraph>> functions_;
 
   std::set<uint64_t> function_queue_;
   std::set<uint64_t> basic_block_queue_;
 
-  std::shared_ptr<ControlFlowGraph> current_fn_;
+  std::unique_ptr<ControlFlowGraph> current_fn_;
   reil::aarch64::decoder::Instruction current_insn_;
 
   void DecodeInstruction(uint64_t address);
@@ -56,7 +57,7 @@ class FirstPassDisassembler {
   ~FirstPassDisassembler();
 
   bool QueueFunction(uint64_t address);
-  std::map<uint64_t, std::shared_ptr<ControlFlowGraph>> AnalyseAllFunctions();
+  std::map<uint64_t, std::unique_ptr<ControlFlowGraph>> AnalyseAllFunctions();
 };
 }  // namespace disassembler
 }  // namespace reil

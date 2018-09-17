@@ -155,11 +155,6 @@ void Interpreter::Xor(const Instruction &ri) {
   SetOperand(ri.output, a ^ b);
 }
 
-void Interpreter::Bisnz(const Instruction &ri) {
-  Immediate a = GetOperand(ri.input0);
-  SetOperand(ri.output, Immediate(Size(ri.output), a ? 1 : 0));
-}
-
 void Interpreter::Equ(const Instruction &ri) {
   Immediate a = GetOperand(ri.input0);
   Immediate b = GetOperand(ri.input1);
@@ -299,10 +294,6 @@ uint16_t Interpreter::SingleStep() {
 
     case Opcode::Xor: {
       Xor(ri);
-    } break;
-
-    case Opcode::Bisnz: {
-      Bisnz(ri);
     } break;
 
     case Opcode::Equ: {

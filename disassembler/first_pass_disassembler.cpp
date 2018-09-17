@@ -232,14 +232,14 @@ bool FirstPassDisassembler::AnalyseOneFunction() {
     uint64_t address = *function_queue_.begin();
     function_queue_.erase(function_queue_.begin());
 
-    current_fn_ = std::make_shared<ControlFlowGraph>();
+    current_fn_ = absl::make_unique<ControlFlowGraph>();
     current_fn_->AddEdge(0, Node(address), kNativeCall);
 
     QueueBasicBlock(address, true);
     while (AnalyseOneBasicBlock()) {
     }
 
-    functions_[address] = current_fn_;
+    functions_[address] = std::move(current_fn_);
   }
 
   LOG_EVERY_N(INFO, 1000) << "Function queue length: " << std::dec
@@ -248,12 +248,12 @@ bool FirstPassDisassembler::AnalyseOneFunction() {
   return !function_queue_.empty();
 }
 
-std::map<uint64_t, std::shared_ptr<ControlFlowGraph>>
+std::map<uint64_t, std::unique_ptr<ControlFlowGraph>>
 FirstPassDisassembler::AnalyseAllFunctions() {
   while (AnalyseOneFunction()) {
   }
 
-  return functions_;
+  return std::move(functions_);
 }
 }  // namespace disassembler
 }  // namespace reil

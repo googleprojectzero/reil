@@ -44,7 +44,6 @@ enum class Opcode : uint8_t {
   Unkn,
   Xor,
 
-  Bisnz,
   Equ,
   Lshl,
   Lshr,
@@ -149,7 +148,6 @@ Instruction Undef(const Operand& output);
 Instruction Unkn();
 Instruction Xor(const Operand& input0, const Operand& input1,
                 const Operand& output);
-Instruction Bisnz(const Operand& input0, const Operand& output);
 Instruction Equ(const Operand& input0, const Operand& input1,
                 const Operand& output);
 Instruction Lshl(const Operand& input0, const Operand& input1,

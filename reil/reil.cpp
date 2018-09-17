@@ -197,14 +197,6 @@ Instruction Xor(const Operand& input0, const Operand& input1,
   return i;
 }
 
-Instruction Bisnz(const Operand& input0, const Operand& output) {
-  Instruction i;
-  i.opcode = Opcode::Bisnz;
-  i.input0 = input0;
-  i.output = output;
-  return i;
-}
-
 Instruction Equ(const Operand& input0, const Operand& input1,
                 const Operand& output) {
   Instruction i;
@@ -390,10 +382,6 @@ std::ostream& operator<<(std::ostream& stream, const Instruction& ri) {
 
     case Opcode::Xor: {
       stream << "xor   ";
-    } break;
-
-    case Opcode::Bisnz: {
-      stream << "bisnz ";
     } break;
 
     case Opcode::Equ: {

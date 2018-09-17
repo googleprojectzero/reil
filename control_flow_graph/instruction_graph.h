@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef REIL_ANALYSIS_INSTRUCTION_GRAPH_H_
+#ifndef REIL_CONTROL_FLOW_GRAPH_INSTRUCTION_GRAPH_H_
 
 #include <map>
 #include <memory>
@@ -24,7 +24,6 @@
 #include "memory_image/memory_image.h"
 
 namespace reil {
-namespace analysis {
 class InstructionGraph : public ControlFlowGraph {
  protected:
   std::shared_ptr<MemoryImage> memory_image_;
@@ -54,9 +53,11 @@ class InstructionGraph : public ControlFlowGraph {
 
   static std::unique_ptr<InstructionGraph> Create(
       std::shared_ptr<MemoryImage> memory_image, size_t cache_size = 0x100);
+
+  static std::unique_ptr<InstructionGraph> Load(
+      std::shared_ptr<MemoryImage> memory_image, std::string path, size_t cache_size = 0x100);
 };
-}  // namespace analysis
 }  // namespace reil
 
-#define REIL_ANALYSIS_INSTRUCTION_GRAPH_H_
-#endif  // REIL_ANALYSIS_INSTRUCTION_GRAPH_H_
+#define REIL_CONTROL_FLOW_GRAPH_INSTRUCTION_GRAPH_H_
+#endif  // REIL_CONTROL_FLOW_GRAPH_INSTRUCTION_GRAPH_H_

@@ -42,7 +42,11 @@ Operand Translation::And(const Operand& input0, const Operand& input1,
 }
 
 Operand Translation::Bisz(const Operand& input0, const Operand& output) {
-  translation_.push_back(reil::Bisz(input0, output));
+  if (flags_ & kPureReil) {
+    translation_.push_back(reil::Bisz(input0, output));
+  } else {
+    Ite(input0, Immediate(Size(output), 0), Immediate(Size(output), 1), output);
+  }
   return output;
 }
 
@@ -176,7 +180,11 @@ Operand Translation::Xor(const Operand& input0, const Operand& input1,
 }
 
 Operand Translation::Bisnz(const Operand& input0, const Operand& output) {
-  translation_.push_back(reil::Bisnz(input0, output));
+  if (flags_ & kPureReil) {
+    Bisz(Bisz(input0), output);
+  } else {
+    Ite(input0, Immediate(Size(output), 1), Immediate(Size(output), 0), output);
+  }
   return output;
 }
 
