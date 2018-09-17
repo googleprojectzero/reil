@@ -64,7 +64,7 @@ std::set<std::string> Transform(
           out_state.insert(reg.name);
         }
       }
-    }
+    } break;
 
     default:
       break;
