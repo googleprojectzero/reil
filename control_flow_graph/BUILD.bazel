@@ -44,7 +44,8 @@ cc_library(
         ":control_flow_graph_cc_proto",
         "//memory_image:memory_image",
         "//reil:reil",
-        "@com_google_abseil//absl/memory:memory",
+        "@com_google_abseil//absl/memory",
+        "@com_google_binexport//:binexport2_cc_proto",
         "@com_google_glog//:glog"
     ],
 )

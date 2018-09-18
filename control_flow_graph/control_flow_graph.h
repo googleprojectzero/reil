@@ -104,6 +104,7 @@ class ControlFlowGraph {
 
   void Save(std::string path);
   static std::unique_ptr<ControlFlowGraph> Load(std::string path);
+  static std::map<uint64_t, std::unique_ptr<ControlFlowGraph>> LoadBinexport2(std::string path);
 };
 }  // namespace reil
 
