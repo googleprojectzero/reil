@@ -103,16 +103,19 @@ class MapStorage {
   iterator end() { return values_.end(); }
 
   template <typename S, typename SOps>
-  friend bool operator==(const MapStorage<S, SOps>& lhs, const MapStorage<S, SOps>& rhs);
+  friend bool operator==(const MapStorage<S, SOps>& lhs,
+                         const MapStorage<S, SOps>& rhs);
 };
 
 template <typename T, typename TOps>
-bool operator==(const MapStorage<T, TOps>& lhs, const MapStorage<T, TOps>& rhs) {
+bool operator==(const MapStorage<T, TOps>& lhs,
+                const MapStorage<T, TOps>& rhs) {
   return lhs.values_ == rhs.values_;
 }
 
 template <typename T, typename TOps>
-bool operator!=(const MapStorage<T, TOps>& lhs, const MapStorage<T, TOps>& rhs) {
+bool operator!=(const MapStorage<T, TOps>& lhs,
+                const MapStorage<T, TOps>& rhs) {
   return !(lhs.values_ == rhs.values_);
 }
 }  // namespace analysis

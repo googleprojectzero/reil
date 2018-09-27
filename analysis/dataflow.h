@@ -29,7 +29,8 @@ namespace analysis {
 template <typename Operations = ImmediateOperations, typename... Ts>
 class DataflowState
     : public EdgeDependentAnalysis,
-      public AArch64RegisterState<absl::variant<Top, Immediate, Ts...>, Operations>,
+      public AArch64RegisterState<absl::variant<Top, Immediate, Ts...>,
+                                  Operations>,
       public TemporaryState<absl::variant<Top, Immediate, Ts...>, Operations> {
  private:
   const MemoryImage* memory_image_;
@@ -82,7 +83,8 @@ class DataflowState
 };
 
 template <typename Operations, typename... Ts>
-auto DataflowState<Operations, Ts...>::GetOperand(const Operand& operand) -> ValueType {
+auto DataflowState<Operations, Ts...>::GetOperand(const Operand& operand)
+    -> ValueType {
   ValueType value;
   if (operand.index() == kImmediate) {
     value = absl::get<Immediate>(operand);
@@ -99,7 +101,7 @@ auto DataflowState<Operations, Ts...>::GetOperand(const Operand& operand) -> Val
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::SetOperand(const Operand& operand,
-                                      ValueType&& value) {
+                                                  ValueType&& value) {
   if (operand.index() == kTemporary) {
     this->SetTemporary(absl::get<Temporary>(operand), std::move(value));
   } else if (operand.index() == kRegister) {
@@ -111,7 +113,7 @@ void DataflowState<Operations, Ts...>::SetOperand(const Operand& operand,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::SetOperand(const Operand& operand,
-                                      const ValueType& value) {
+                                                  const ValueType& value) {
   if (operand.index() == kTemporary) {
     this->SetTemporary(absl::get<Temporary>(operand), value);
   } else if (operand.index() == kRegister) {
@@ -156,7 +158,7 @@ void DataflowState<Operations, Ts...>::ConstrainNonZero(ValueType& value) {
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformAdd(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Add(lhs, rhs));
@@ -164,7 +166,7 @@ void DataflowState<Operations, Ts...>::TransformAdd(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformAnd(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::And(lhs, rhs));
@@ -172,7 +174,7 @@ void DataflowState<Operations, Ts...>::TransformAnd(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformDiv(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Divide(lhs, rhs));
@@ -180,7 +182,7 @@ void DataflowState<Operations, Ts...>::TransformDiv(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformJcc(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType condition = GetOperand(ri.input0);
   if (edge.kind == EdgeKind::kFlow || edge.kind == EdgeKind::kNativeFlow) {
     ConstrainZero(condition);
@@ -197,7 +199,7 @@ void DataflowState<Operations, Ts...>::TransformJcc(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformLdm(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType address_value = GetOperand(ri.input0);
   if (absl::holds_alternative<Immediate>(address_value)) {
     uint64_t address = (uint64_t)absl::get<Immediate>(address_value);
@@ -214,7 +216,7 @@ void DataflowState<Operations, Ts...>::TransformLdm(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformMod(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Modulo(lhs, rhs));
@@ -222,7 +224,7 @@ void DataflowState<Operations, Ts...>::TransformMod(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformMul(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Multiply(lhs, rhs));
@@ -230,7 +232,7 @@ void DataflowState<Operations, Ts...>::TransformMul(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformOr(const Edge& edge,
-                                       const Instruction& ri) {
+                                                   const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Or(lhs, rhs));
@@ -238,7 +240,7 @@ void DataflowState<Operations, Ts...>::TransformOr(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformStr(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType value = GetOperand(ri.input0);
   if (Size(ri.output) > Operations::Size(value)) {
     value = Operations::ZeroExtend(value, Size(ri.output));
@@ -250,7 +252,7 @@ void DataflowState<Operations, Ts...>::TransformStr(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformSub(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Subtract(lhs, rhs));
@@ -258,19 +260,19 @@ void DataflowState<Operations, Ts...>::TransformSub(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformUndef(const Edge& edge,
-                                          const Instruction& ri) {
+                                                      const Instruction& ri) {
   ClearOperand(ri.output);
 }
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformUnkn(const Edge& edge,
-                                         const Instruction& ri) {
+                                                     const Instruction& ri) {
   Invalidate();
 }
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformXor(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Xor(lhs, rhs));
@@ -278,7 +280,7 @@ void DataflowState<Operations, Ts...>::TransformXor(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformEqu(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::Equal(lhs, rhs));
@@ -286,7 +288,7 @@ void DataflowState<Operations, Ts...>::TransformEqu(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformLshl(const Edge& edge,
-                                         const Instruction& ri) {
+                                                     const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::LeftShift(lhs, rhs));
@@ -294,7 +296,7 @@ void DataflowState<Operations, Ts...>::TransformLshl(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformLshr(const Edge& edge,
-                                         const Instruction& ri) {
+                                                     const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::RightShift(lhs, rhs));
@@ -302,7 +304,7 @@ void DataflowState<Operations, Ts...>::TransformLshr(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformAshr(const Edge& edge,
-                                         const Instruction& ri) {
+                                                     const Instruction& ri) {
   ValueType lhs = GetOperand(ri.input0);
   ValueType rhs = GetOperand(ri.input1);
   SetOperand(ri.output, Operations::SignedRightShift(lhs, rhs));
@@ -310,7 +312,7 @@ void DataflowState<Operations, Ts...>::TransformAshr(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformSex(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType value = GetOperand(ri.input0);
   if (Size(ri.output) > Operations::Size(value)) {
     value = Operations::SignExtend(value, Size(ri.output));
@@ -322,13 +324,13 @@ void DataflowState<Operations, Ts...>::TransformSex(const Edge& edge,
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformSys(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   // TODO: implement
 }
 
 template <typename Operations, typename... Ts>
 void DataflowState<Operations, Ts...>::TransformIte(const Edge& edge,
-                                        const Instruction& ri) {
+                                                    const Instruction& ri) {
   ValueType condition = GetOperand(ri.input0);
   ValueType if_value = GetOperand(ri.input1);
   ValueType else_value = GetOperand(ri.input2);
@@ -341,9 +343,11 @@ void DataflowState<Operations, Ts...>::TransformIte(const Edge& edge,
   } else {
     ValueType zero = Immediate(Operations::Size(condition));
     ValueType if_condition = Operations::NotEqual(condition, zero);
-    if_condition = Operations::ZeroExtend(if_condition, Operations::Size(if_value));
+    if_condition =
+        Operations::ZeroExtend(if_condition, Operations::Size(if_value));
     ValueType else_condition = Operations::NotEqual(condition, zero);
-    else_condition = Operations::ZeroExtend(else_condition, Operations::Size(else_value));
+    else_condition =
+        Operations::ZeroExtend(else_condition, Operations::Size(else_value));
     if_value = Operations::Multiply(if_condition, if_value);
     else_value = Operations::Multiply(else_condition, else_value);
     SetOperand(ri.output, Operations::Merge(if_value, else_value));
@@ -378,8 +382,8 @@ std::string DataflowState<Operations, Ts...>::Print() const {
 }
 
 template <typename Operations, typename... Ts>
-auto DataflowState<Operations, Ts...>::Merge(absl::Span<const StateType*> in_states)
-    -> StateType {
+auto DataflowState<Operations, Ts...>::Merge(
+    absl::Span<const StateType*> in_states) -> StateType {
   CHECK(in_states.size() != 0);
   StateType out_state = *in_states[0];
 

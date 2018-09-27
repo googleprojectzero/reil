@@ -23,11 +23,9 @@
 
 namespace reil {
 
-Immediate::Immediate() : bytes_(0) {
-}
+Immediate::Immediate() : bytes_(0) {}
 
-Immediate::Immediate(uint16_t size, uint64_t value)
-    : bytes_(size / 8) {
+Immediate::Immediate(uint16_t size, uint64_t value) : bytes_(size / 8) {
   if (size / 8 < sizeof(uint64_t)) {
     memcpy(bytes_.data(), &value, bytes_.size());
   } else {
@@ -36,8 +34,7 @@ Immediate::Immediate(uint16_t size, uint64_t value)
   }
 }
 
-Immediate::Immediate(uint16_t size, const Immediate& value)
-    : bytes_(size / 8) {
+Immediate::Immediate(uint16_t size, const Immediate &value) : bytes_(size / 8) {
   if (bytes_.size() < value.bytes_.size()) {
     memcpy(bytes_.data(), value.bytes_.data(), bytes_.size());
   } else {
@@ -56,7 +53,7 @@ Immediate::Immediate(const uint8_t *bytes, size_t bytes_len)
 
 uint16_t Immediate::size() const { return bytes_.size() * 8; }
 
-absl::Span<uint8_t> Immediate::bytes() { 
+absl::Span<uint8_t> Immediate::bytes() {
   return absl::Span<uint8_t>(bytes_.data(), bytes_.size());
 }
 
@@ -80,7 +77,8 @@ Immediate Immediate::SignExtend(uint16_t size) const {
   Immediate result(size, *this);
 
   if (bytes_[bytes_.size() - 1] & 0x80) {
-    memset(result.bytes_.data() + bytes_.size(), 0xff, result.bytes_.size() - bytes_.size());
+    memset(result.bytes_.data() + bytes_.size(), 0xff,
+           result.bytes_.size() - bytes_.size());
   }
 
   return result;

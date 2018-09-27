@@ -44,10 +44,8 @@ TEST(Solver, LiteralArithmetic) {
       MemoryImage::Load("analysis/test_data/literal_arithmetic.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto nfg = disassembler::DisassembleFunction(*memory_image, 0x400078);
-  ASSERT_NE(nfg, nullptr);
-
-  auto rfg = FlowGraph::Create(*memory_image, *nfg);
+  auto rfg = FlowGraph::Load(*memory_image,
+                             "analysis/test_data/literal_arithmetic.cfg");
   ASSERT_NE(rfg, nullptr);
 
   std::map<Edge, DataflowState<>> edge_states;
@@ -78,14 +76,10 @@ TEST(Solver, LiteralArithmetic) {
   400098:       d65f03c0        ret
 */
 TEST(Solver, Loop) {
-  auto memory_image =
-      MemoryImage::Load("analysis/test_data/loop.mem");
+  auto memory_image = MemoryImage::Load("analysis/test_data/loop.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto nfg = disassembler::DisassembleFunction(*memory_image, 0x400078);
-  ASSERT_NE(nfg, nullptr);
-
-  auto rfg = FlowGraph::Create(*memory_image, *nfg);
+  auto rfg = FlowGraph::Load(*memory_image, "analysis/test_data/loop.cfg");
   ASSERT_NE(rfg, nullptr);
 
   std::cerr << std::endl << "in" << std::endl;
@@ -126,14 +120,10 @@ TEST(Solver, Loop) {
   400090:       d65f03c0        ret
 */
 TEST(Solver, AsrBug) {
-  auto memory_image =
-      MemoryImage::Load("analysis/test_data/asr_bug.mem");
+  auto memory_image = MemoryImage::Load("analysis/test_data/asr_bug.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto nfg = disassembler::DisassembleFunction(*memory_image, 0x400078);
-  ASSERT_NE(nfg, nullptr);
-
-  auto rfg = FlowGraph::Create(*memory_image, *nfg);
+  auto rfg = FlowGraph::Load(*memory_image, "analysis/test_data/asr_bug.cfg");
   ASSERT_NE(rfg, nullptr);
 
   std::map<Edge, DataflowState<>> edge_states;
@@ -168,10 +158,8 @@ TEST(Solver, ControlFlowConstraint) {
       MemoryImage::Load("analysis/test_data/control_flow_constraint.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto nfg = disassembler::DisassembleFunction(*memory_image, 0x400078);
-  ASSERT_NE(nfg, nullptr);
-
-  auto rfg = FlowGraph::Create(*memory_image, *nfg);
+  auto rfg = FlowGraph::Load(*memory_image,
+                             "analysis/test_data/control_flow_constraint.cfg");
   ASSERT_NE(rfg, nullptr);
 
   std::map<Edge, DataflowState<>> edge_states;

@@ -67,17 +67,13 @@ class TemporaryState {
     return temporaries_.begin();
   }
 
-  typename Storage::iterator TemporariesBegin() {
-    return temporaries_.begin();
-  }
+  typename Storage::iterator TemporariesBegin() { return temporaries_.begin(); }
 
   typename Storage::const_iterator TemporariesEnd() const {
     return temporaries_.end();
   }
 
-  typename Storage::iterator TemporariesEnd() {
-    return temporaries_.end();
-  }
+  typename Storage::iterator TemporariesEnd() { return temporaries_.end(); }
 };
 }  // namespace analysis
 }  // namespace reil

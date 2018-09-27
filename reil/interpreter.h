@@ -17,8 +17,8 @@
 #include <map>
 #include <vector>
 
-#include "reil.h"
 #include "absl/types/span.h"
+#include "reil.h"
 
 namespace reil {
 class Interpreter {

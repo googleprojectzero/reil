@@ -64,9 +64,7 @@ class RegisterState {
     return registers_.begin();
   }
 
-  typename Storage::iterator RegistersBegin() {
-    return registers_.begin();
-  }
+  typename Storage::iterator RegistersBegin() { return registers_.begin(); }
 
   typename Storage::const_iterator RegistersEnd() const {
     return registers_.end();
@@ -92,17 +90,18 @@ class AArch64RegisterState : public RegisterState<T, TOps> {
   }
 
   void SetRegister(std::string name, const T& value) {
-    this->RegisterState<T, TOps>::SetRegister(reil::aarch64::RegisterIndex(name),
-                                        value);
+    this->RegisterState<T, TOps>::SetRegister(
+        reil::aarch64::RegisterIndex(name), value);
   }
 
   void SetRegister(std::string name, T&& value) {
-    this->RegisterState<T, TOps>::SetRegister(reil::aarch64::RegisterIndex(name),
-                                        std::move(value));
+    this->RegisterState<T, TOps>::SetRegister(
+        reil::aarch64::RegisterIndex(name), std::move(value));
   }
 
   void ClearRegister(std::string name) {
-    this->RegisterState<T, TOps>::ClearRegister(reil::aarch64::RegisterIndex(name));
+    this->RegisterState<T, TOps>::ClearRegister(
+        reil::aarch64::RegisterIndex(name));
   }
 };
 }  // namespace analysis

@@ -18,15 +18,15 @@
 #define GOOGLE_STRIP_LOG 0
 #include "glog/logging.h"
 
-#include "disassembler/disassembler.h"
-#include "flow_graph/flow_graph.h"
 #include "analysis/dataflow.h"
 #include "analysis/solver.h"
+#include "disassembler/disassembler.h"
+#include "flow_graph/flow_graph.h"
 
 namespace reil {
 namespace disassembler {
-bool ResolveBranches(const MemoryImage& memory_image,
-                                InstructionProvider& ip, NativeFlowGraph& nfg) {
+bool ResolveBranches(const MemoryImage& memory_image, InstructionProvider& ip,
+                     NativeFlowGraph& nfg) {
   bool resolved = false;
   bool jump_added = false;
 
@@ -40,8 +40,8 @@ bool ResolveBranches(const MemoryImage& memory_image,
           std::make_pair(edge, reil::analysis::DataflowState<>(memory_image)));
     }
 
-    if (reil::analysis::SolveFunction<reil::analysis::DataflowState<>>(*rfg, ip,
-                                                               edge_states)) {
+    if (reil::analysis::SolveFunction<reil::analysis::DataflowState<>>(
+            *rfg, ip, edge_states)) {
       resolved = true;
       jump_added = false;
 

@@ -360,7 +360,7 @@ std::vector<Instruction> Translation::Finalise() {
     }
   }
 
-  //std::cerr << tmp_index_ << std::endl;
+  // std::cerr << tmp_index_ << std::endl;
 
   return std::move(translation_);
 }

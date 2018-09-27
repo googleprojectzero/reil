@@ -161,115 +161,130 @@ struct Operations {
   using SetMerge =
       Operations<T, NewMerge, Add_, Subtract_, Multiply_, Divide_, Modulo_,
                  And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewAdd)(const T&, const T&)>
-  using SetAdd =
-      Operations<T, Merge_, NewAdd, Subtract_, Multiply_, Divide_, Modulo_,
-                 And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+  using SetAdd = Operations<T, Merge_, NewAdd, Subtract_, Multiply_, Divide_,
+                            Modulo_, And_, Or_, Xor_, Equal_, NotEqual_,
+                            LeftShift_, RightShift_, SignedRightShift_,
+                            ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
 
   template <T(NewSubtract)(const T&, const T&)>
   using SetSubtract =
       Operations<T, Merge_, Add_, NewSubtract, Multiply_, Divide_, Modulo_,
                  And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewMultiply)(const T&, const T&)>
   using SetMultiply =
       Operations<T, Merge_, Add_, Subtract_, NewMultiply, Divide_, Modulo_,
                  And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewDivide)(const T&, const T&)>
   using SetDivide =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, NewDivide, Modulo_,
                  And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewModulo)(const T&, const T&)>
   using SetModulo =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, NewModulo,
                  And_, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewAnd)(const T&, const T&)>
-  using SetAnd =
-      Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_,
-                 NewAnd, Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+  using SetAnd = Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_,
+                            Modulo_, NewAnd, Or_, Xor_, Equal_, NotEqual_,
+                            LeftShift_, RightShift_, SignedRightShift_,
+                            ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
 
   template <T(NewOr)(const T&, const T&)>
-  using SetOr =
-      Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
-                 NewOr, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+  using SetOr = Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_,
+                           Modulo_, And_, NewOr, Xor_, Equal_, NotEqual_,
+                           LeftShift_, RightShift_, SignedRightShift_,
+                           ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
 
   template <T(NewXor)(const T&, const T&)>
-  using SetXor =
-      Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
-                 Or_, NewXor, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+  using SetXor = Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_,
+                            Modulo_, And_, Or_, NewXor, Equal_, NotEqual_,
+                            LeftShift_, RightShift_, SignedRightShift_,
+                            ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
 
   template <T(NewEqual)(const T&, const T&)>
   using SetEqual =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, NewEqual, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewNotEqual)(const T&, const T&)>
   using SetNotEqual =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NewNotEqual, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewLeftShift)(const T&, const T&)>
   using SetLeftShift =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, NewLeftShift, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewRightShift)(const T&, const T&)>
   using SetRightShift =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, NewRightShift,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 Size_>;
 
   template <T(NewSignedRightShift)(const T&, const T&)>
   using SetSignedRightShift =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 NewSignedRightShift, ZeroExtend_, SignExtend_, Extract_, Print_, Size_>;
+                 NewSignedRightShift, ZeroExtend_, SignExtend_, Extract_,
+                 Print_, Size_>;
 
   template <T(NewZeroExtend)(const T&, uint16_t)>
   using SetZeroExtend =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, NewZeroExtend, SignExtend_, Extract_, Print_, Size_>;
+                 SignedRightShift_, NewZeroExtend, SignExtend_, Extract_,
+                 Print_, Size_>;
 
   template <T(NewSignExtend)(const T&, uint16_t)>
   using SetSignExtend =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, NewSignExtend, Extract_, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, NewSignExtend, Extract_,
+                 Print_, Size_>;
 
   template <T(NewExtract)(const T&, uint16_t)>
   using SetExtract =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, NewExtract, Print_, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, NewExtract,
+                 Print_, Size_>;
 
   template <std::string(NewPrint)(const T&)>
   using SetPrint =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, NewPrint, Size_>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_,
+                 NewPrint, Size_>;
 
   template <uint16_t(NewSize)(const T&)>
   using SetSize =
       Operations<T, Merge_, Add_, Subtract_, Multiply_, Divide_, Modulo_, And_,
                  Or_, Xor_, Equal_, NotEqual_, LeftShift_, RightShift_,
-                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_, NewSize>;
+                 SignedRightShift_, ZeroExtend_, SignExtend_, Extract_, Print_,
+                 NewSize>;
 };
 }  // namespace analysis
 }  // namespace reil
