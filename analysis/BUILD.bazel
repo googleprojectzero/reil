@@ -68,7 +68,6 @@ cc_test(
     ],
     deps = [
         ":analysis",
-        "//disassembler:disassembler",
         "@com_google_googletest//:gtest",
     ],
     size = "small",
