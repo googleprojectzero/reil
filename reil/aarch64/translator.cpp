@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <map>
 #include <sstream>
 
 #include "../immediate.h"
@@ -545,6 +546,9 @@ std::tuple<Operand, Operand> Translation::DecodeBitMasks(uint64_t immN,
 
 void Translation::TranslatePcRelativeAddressing() {
   auto pc = Register(decoder::Register::kPc);
+  if (di_.opcode == decoder::kAdrp) {
+    pc = And(pc, Imm64(0xfffffffffffff000ull));
+  }
   auto tmp1 = Str(Add(pc, ApplyShift(2, GetOperand(1))), Tmp(64));
   SetOperand(0, tmp1);
 }
@@ -1466,27 +1470,165 @@ bool Translation::Translate() {
 }
 
 std::string RegisterName(uint8_t index) {
-  static std::vector<std::string> register_names_({
-    "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
-    "x12", "x13", "x14", "x15", "x16", "x17", "x18", "x19", "x20", "x21", "x22",
-    "x23", "x24", "x25", "x26", "x27", "x28", "x29", "x30", "xzr", 
+  static std::map<uint8_t, std::string> register_names_({
+    {kX0, "x0"},
+    {kX1, "x1"},
+    {kX2, "x2"},
+    {kX3, "x3"},
+    {kX4, "x4"},
+    {kX5, "x5"},
+    {kX6, "x6"},
+    {kX7, "x7"},
+    {kX8, "x8"},
+    {kX9, "x9"},
+    {kX10, "x10"},
+    {kX11, "x11"},
+    {kX12, "x12"},
+    {kX13, "x13"},
+    {kX14, "x14"},
+    {kX15, "x15"},
+    {kX16, "x16"},
+    {kX17, "x17"},
+    {kX18, "x18"},
+    {kX19, "x19"},
+    {kX20, "x20"},
+    {kX21, "x21"},
+    {kX22, "x22"},
+    {kX23, "x23"},
+    {kX24, "x24"},
+    {kX25, "x25"},
+    {kX26, "x26"},
+    {kX27, "x27"},
+    {kX28, "x28"},
+    {kX29, "x29"},
+    {kX30, "x30"},
+    {kXzr, "xzr"},
 
-    "sp", 
-    "pc",
+    {kSp, "sp"},
+    {kPc, "pc"},
 
-    "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11",
-    "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22",
-    "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
+    {kN, "n"},
+    {kZ, "z"},
+    {kC, "c"},
+    {kV, "v"},
 
-    "n", "z", "c", "v",
+    {kV0, "v0"},
+    {kV1, "v1"},
+    {kV2, "v2"},
+    {kV3, "v3"},
+    {kV4, "v4"},
+    {kV5, "v5"},
+    {kV6, "v6"},
+    {kV7, "v7"},
+    {kV8, "v8"},
+    {kV9, "v9"},
+    {kV10, "v10"},
+    {kV11, "v11"},
+    {kV12, "v12"},
+    {kV13, "v13"},
+    {kV14, "v14"},
+    {kV15, "v15"},
+    {kV16, "v16"},
+    {kV17, "v17"},
+    {kV18, "v18"},
+    {kV19, "v19"},
+    {kV20, "v20"},
+    {kV21, "v21"},
+    {kV22, "v22"},
+    {kV23, "v23"},
+    {kV24, "v24"},
+    {kV25, "v25"},
+    {kV26, "v26"},
+    {kV27, "v27"},
+    {kV28, "v28"},
+    {kV29, "v29"},
+    {kV30, "v30"},
+    {kV31, "v31"},
   });
 
-  if (index < register_names_.size()) {
-    return register_names_[index];
-  }
+  return register_names_.at(index);
+}
 
+uint8_t RegisterIndex(std::string name) {
+  static std::map<std::string, uint8_t> register_names_({
+    {"x0", kX0},
+    {"x1", kX1},
+    {"x2", kX2},
+    {"x3", kX3},
+    {"x4", kX4},
+    {"x5", kX5},
+    {"x6", kX6},
+    {"x7", kX7},
+    {"x8", kX8},
+    {"x9", kX9},
+    {"x10", kX10},
+    {"x11", kX11},
+    {"x12", kX12},
+    {"x13", kX13},
+    {"x14", kX14},
+    {"x15", kX15},
+    {"x16", kX16},
+    {"x17", kX17},
+    {"x18", kX18},
+    {"x19", kX19},
+    {"x20", kX20},
+    {"x21", kX21},
+    {"x22", kX22},
+    {"x23", kX23},
+    {"x24", kX24},
+    {"x25", kX25},
+    {"x26", kX26},
+    {"x27", kX27},
+    {"x28", kX28},
+    {"x29", kX29},
+    {"x30", kX30},
+    {"xzr", kXzr},
 
-  return "invalid_register";
+    {"sp", kSp},
+    {"pc", kPc},
+
+    {"n", kN},
+    {"z", kZ},
+    {"c", kC},
+    {"v", kV},
+
+    {"v0", kV0},
+    {"v1", kV1},
+    {"v2", kV2},
+    {"v3", kV3},
+    {"v4", kV4},
+    {"v5", kV5},
+    {"v6", kV6},
+    {"v7", kV7},
+    {"v8", kV8},
+    {"v9", kV9},
+    {"v10", kV10},
+    {"v11", kV11},
+    {"v12", kV12},
+    {"v13", kV13},
+    {"v14", kV14},
+    {"v15", kV15},
+    {"v16", kV16},
+    {"v17", kV17},
+    {"v18", kV18},
+    {"v19", kV19},
+    {"v20", kV20},
+    {"v21", kV21},
+    {"v22", kV22},
+    {"v23", kV23},
+    {"v24", kV24},
+    {"v25", kV25},
+    {"v26", kV26},
+    {"v27", kV27},
+    {"v28", kV28},
+    {"v29", kV29},
+    {"v30", kV30},
+    {"v31", kV31},
+  });
+
+  assert(register_names_.find(name) != register_names_.end());
+
+  return register_names_.at(name);
 }
 
 NativeInstruction TranslateInstruction(const decoder::Instruction& di, uint32_t flags) {
@@ -1530,39 +1672,6 @@ NativeInstruction TranslateInstruction(uint64_t address, const uint8_t* bytes,
   auto di = decoder::DecodeInstruction(address, opcode);
 
   return TranslateInstruction(di, flags);
-}
-
-NativeBasicBlock TranslateBasicBlock(uint64_t address, std::vector<uint8_t> bytes,
-                            uint32_t flags) {
-  return TranslateBasicBlock(address, bytes.data(), bytes.size(), flags);
-}
-
-NativeBasicBlock TranslateBasicBlock(uint64_t address, const uint8_t* bytes,
-                            size_t bytes_len, uint32_t flags) {
-  NativeBasicBlock nbb;
-  nbb.address = address;
-  nbb.size = 0;
-
-  // read opcode
-  uint32_t opcode = 0;
-  while (bytes_len >= sizeof(opcode)) {
-    memcpy(&opcode, bytes, sizeof(opcode));
-    nbb.size += sizeof(opcode);
-
-    // decode instruction
-    auto di = decoder::DecodeInstruction(address, opcode);
-
-    nbb.instructions.push_back(TranslateInstruction(di, flags));
-
-    if (di.opcode == decoder::kUnallocated
-        || di.opcode == decoder::kBCond 
-        || (decoder::kBlr <= di.opcode && di.opcode <= decoder::kTbz)) {
-      // end of basic block
-      break;
-    }
-  }
-
-  return nbb;
 }
 }  // namespace aarch64
 }  // namespace reil

@@ -24,19 +24,28 @@ package(
 cc_library(
     name = "analysis",
     hdrs = [
+        "edge_dependent_analysis.h",
+        "edge_independent_analysis.h",
         "dataflow.h",
-        "expression.h",
-        "refcounted.h",
-        "solver.h"
+        "map_storage.h",
+        "register_state.h",
+        "solver.h",
+        "temporary_state.h",
+        "value/immediate.h",
+        "value/operations.h",
+        "value/top.h",
     ],
     srcs = [
-        "dataflow.cpp",
-        "expression.cpp",
+        "edge_dependent_analysis.cpp",
+        "edge_independent_analysis.cpp",
+        "value/immediate.cpp",
+        "value/top.cpp",
     ],
     deps = [
-        "//control_flow_graph:control_flow_graph",
-        "//memory_image:memory_image",
-        "//reil:reil",
+        "//flow_graph",
+        "//memory_image",
+        "//reil",
+        "@com_google_abseil//absl/meta:type_traits",
         "@com_google_abseil//absl/types:span",
     ],
 )
@@ -47,22 +56,6 @@ filegroup(
         "test_data/*.mem",
         "test_data/*.cfg",
     ]),
-)
-
-cc_test(
-    name = "solver_test",
-    srcs = [
-        "solver_test.cpp",
-    ],
-    data = [
-        ":test_data",
-    ],
-    deps = [
-        ":analysis",
-        "//disassembler:disassembler",
-        "@com_google_googletest//:gtest",
-    ],
-    size = "small",
 )
 
 cc_test(

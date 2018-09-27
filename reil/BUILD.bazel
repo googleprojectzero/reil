@@ -46,7 +46,11 @@ cc_library(
         "translation.h",
     ],
     deps = [
+        "@com_google_abseil//absl/container:inlined_vector",
+        "@com_google_abseil//absl/container:fixed_array",
+        "@com_google_abseil//absl/types:span",
         "@com_google_abseil//absl/types:variant",
+        "@com_google_glog//:glog",
     ],
 )
 

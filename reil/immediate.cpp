@@ -15,44 +15,53 @@
 #include "immediate.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <iomanip>
 
+#include "absl/container/fixed_array.h"
+#include "glog/logging.h"
+
 namespace reil {
 
-Immediate::Immediate() : size_(0), bytes_(0) {}
+Immediate::Immediate() : bytes_(0) {
+}
 
 Immediate::Immediate(uint16_t size, uint64_t value)
-    : size_(size), bytes_(size / 8) {
-  if (value) {
-    memcpy(bytes_.data(), &value, std::min(bytes_.size(), sizeof(value)));
+    : bytes_(size / 8) {
+  if (size / 8 < sizeof(uint64_t)) {
+    memcpy(bytes_.data(), &value, bytes_.size());
+  } else {
+    memset(bytes_.data(), 0, bytes_.size());
+    memcpy(bytes_.data(), &value, sizeof(uint64_t));
   }
 }
 
-Immediate::Immediate(uint16_t size, const Immediate &value)
-    : size_(size), bytes_(size / 8) {
-  memcpy(bytes_.data(), value.bytes_.data(),
-         std::min(bytes_.size(), value.bytes_.size()));
+Immediate::Immediate(uint16_t size, const Immediate& value)
+    : bytes_(size / 8) {
+  if (bytes_.size() < value.bytes_.size()) {
+    memcpy(bytes_.data(), value.bytes_.data(), bytes_.size());
+  } else {
+    memset(bytes_.data(), 0, bytes_.size());
+    memcpy(bytes_.data(), value.bytes_.data(), value.bytes_.size());
+  }
 }
 
-Immediate::Immediate(const std::vector<uint8_t> &bytes)
+Immediate::Immediate(const absl::Span<uint8_t> &bytes)
     : Immediate(bytes.data(), bytes.size()) {}
 
 Immediate::Immediate(const uint8_t *bytes, size_t bytes_len)
-    : size_(bytes_len * 8), bytes_(bytes_len) {
-  memcpy(bytes_.data(), bytes, bytes_len);
+    : bytes_(bytes_len) {
+  memcpy(bytes_.data(), bytes, bytes_.size());
 }
 
-Immediate::Immediate(const Immediate &value)
-    : size_(value.size_), bytes_(value.bytes_) {}
+uint16_t Immediate::size() const { return bytes_.size() * 8; }
 
-uint16_t Immediate::size() const { return size_; }
-
-std::vector<uint8_t> Immediate::bytes() { return bytes_; }
+absl::Span<uint8_t> Immediate::bytes() { 
+  return absl::Span<uint8_t>(bytes_.data(), bytes_.size());
+}
 
 Immediate Immediate::Extract(uint16_t size, uint16_t offset) const {
-  assert(offset < size_ && size <= size_ - offset);
+  DCHECK(offset < this->size() && size <= this->size() - offset);
 
   if (offset) {
     Immediate tmp = *this >> offset;
@@ -70,8 +79,8 @@ Immediate Immediate::ZeroExtend(uint16_t size) const {
 Immediate Immediate::SignExtend(uint16_t size) const {
   Immediate result(size, *this);
 
-  if (Immediate::SignBit(size_, size_) & *this) {
-    result |= Immediate::Mask(size, size - size_) << size_;
+  if (bytes_[bytes_.size() - 1] & 0x80) {
+    memset(result.bytes_.data() + bytes_.size(), 0xff, result.bytes_.size() - bytes_.size());
   }
 
   return result;
@@ -109,13 +118,13 @@ Immediate::operator uint64_t() const {
 }
 
 bool Immediate::operator==(const Immediate &other) const {
-  assert(size_ == other.size_);
+  DCHECK(bytes_.size() == other.bytes_.size());
 
   return (memcmp(bytes_.data(), other.bytes_.data(), bytes_.size()) == 0);
 }
 
 bool Immediate::operator<(const Immediate &other) const {
-  assert(size_ == other.size_);
+  DCHECK(bytes_.size() == other.bytes_.size());
 
   uint16_t byte_width = bytes_.size();
   for (uint16_t i = 1; i <= byte_width; ++i) {
@@ -130,7 +139,7 @@ bool Immediate::operator<(const Immediate &other) const {
 }
 
 bool Immediate::operator<=(const Immediate &other) const {
-  assert(size_ == other.size_);
+  DCHECK(bytes_.size() == other.bytes_.size());
 
   uint16_t byte_width = bytes_.size();
   for (uint16_t i = 1; i <= byte_width; ++i) {
@@ -213,9 +222,9 @@ Immediate Immediate::UnsignedMax(uint16_t size) {
 }
 
 Immediate operator+(const Immediate &lhs, const Immediate &rhs) {
-  assert(lhs.size_ == rhs.size_);
+  DCHECK(lhs.bytes_.size() == rhs.bytes_.size());
 
-  Immediate result(lhs.size_ * 2);
+  Immediate result(lhs.size() * 2);
 
   uint8_t i = 0;
   uint16_t tmp = 0;
@@ -235,9 +244,9 @@ Immediate operator+(const Immediate &lhs, const Immediate &rhs) {
 }
 
 Immediate operator-(const Immediate &lhs, const Immediate &rhs) {
-  assert(lhs.size_ == rhs.size_);
+  DCHECK(lhs.bytes_.size() == rhs.bytes_.size());
 
-  Immediate result(lhs.size_ * 2);
+  Immediate result(lhs.size() * 2);
 
   uint8_t i = 0;
   int16_t tmp = 0;
@@ -274,11 +283,11 @@ Immediate lattice_multiply(const Immediate &lhs, const Immediate &rhs) {
 
   uint16_t byte_width = lhs.bytes_.size();
 
-  Immediate result(lhs.size_ * 2);
+  Immediate result(lhs.size() * 2);
 
   size_t lattice_size = lhs.bytes_.size() * rhs.bytes_.size();
-  std::vector<uint8_t> lattice(lattice_size);
-  std::vector<uint8_t> carry_lattice(lattice_size);
+  absl::FixedArray<uint8_t> lattice(lattice_size);
+  absl::FixedArray<uint8_t> carry_lattice(lattice_size);
 
   uint16_t tmp = 0;
   uint16_t byte_value = 0;
@@ -327,7 +336,7 @@ Immediate karatsuba_multiply(const Immediate &lhs, const Immediate &rhs) {
   //      + 2^m.(x_1 - x_0).(y_1 - y_0)
   //      + 2^m.x_0.y_0 + x_0.y_0
 
-  uint16_t n = lhs.size_;
+  uint16_t n = lhs.size();
   uint16_t m = n / 2;
 
   auto x_0 = lhs.Extract(m);
@@ -374,7 +383,7 @@ Immediate karatsuba_multiply(const Immediate &lhs, const Immediate &rhs) {
 }
 
 Immediate operator*(const Immediate &lhs, const Immediate &rhs) {
-  assert(lhs.size_ == rhs.size_);
+  DCHECK(lhs.bytes_.size() == rhs.bytes_.size());
   uint16_t byte_width = lhs.bytes_.size();
 
   if (byte_width <= 4) {
@@ -389,13 +398,13 @@ Immediate operator*(const Immediate &lhs, const Immediate &rhs) {
 }
 
 Immediate binary_long_divide(const Immediate &lhs, const Immediate &rhs) {
-  Immediate quotient(lhs.size_);
+  Immediate quotient(lhs.size());
 
   // binary long division
-  Immediate dividend = lhs.ZeroExtend(lhs.size_ + 8);
+  Immediate dividend = lhs.ZeroExtend(lhs.size() + 8);
   uint16_t dividend_width = dividend.bytes_.size();
 
-  Immediate divisor = rhs.ZeroExtend(rhs.size_ + 8);
+  Immediate divisor = rhs.ZeroExtend(rhs.size() + 8);
   uint16_t divisor_width = divisor.bytes_.size();
 
   // first we normalise, to make sure we only do the minimum necessary  work.
@@ -441,7 +450,7 @@ Immediate binary_long_divide(const Immediate &lhs, const Immediate &rhs) {
     std::cerr << bit << std::endl;
     std::cerr << quotient << std::endl;
     if (dividend >= divisor) {
-      dividend = (dividend - divisor).Extract(lhs.size_ + 8);
+      dividend = (dividend - divisor).Extract(lhs.size() + 8);
       quotient.bytes_[bit / 8] |= 1 << (bit % 8);
     }
 
@@ -450,7 +459,7 @@ Immediate binary_long_divide(const Immediate &lhs, const Immediate &rhs) {
   }
 
   if (dividend >= divisor) {
-    dividend = (dividend - divisor).Extract(lhs.size_ + 8);
+    dividend = (dividend - divisor).Extract(lhs.size() + 8);
     quotient.bytes_[0] |= 1;
   }
 
@@ -459,10 +468,10 @@ Immediate binary_long_divide(const Immediate &lhs, const Immediate &rhs) {
 
 Immediate binary_long_modulus(const Immediate &lhs, const Immediate &rhs) {
   // binary long division
-  Immediate dividend = lhs.ZeroExtend(lhs.size_ + 8);
+  Immediate dividend = lhs.ZeroExtend(lhs.size() + 8);
   uint16_t dividend_width = dividend.bytes_.size();
 
-  Immediate divisor = rhs.ZeroExtend(rhs.size_ + 8);
+  Immediate divisor = rhs.ZeroExtend(rhs.size() + 8);
   uint16_t divisor_width = divisor.bytes_.size();
 
   // first we normalise, to make sure we only do the minimum necessary  work.
@@ -504,7 +513,7 @@ Immediate binary_long_modulus(const Immediate &lhs, const Immediate &rhs) {
 
   while (bit) {
     if (dividend >= divisor) {
-      dividend = (dividend - divisor).Extract(lhs.size_ + 8);
+      dividend = (dividend - divisor).Extract(lhs.size() + 8);
     }
 
     bit -= 1;
@@ -512,15 +521,15 @@ Immediate binary_long_modulus(const Immediate &lhs, const Immediate &rhs) {
   }
 
   if (dividend >= divisor) {
-    dividend = (dividend - divisor).Extract(lhs.size_ + 8);
+    dividend = (dividend - divisor).Extract(lhs.size() + 8);
   }
 
   return dividend;
 }
 
 Immediate operator/(const Immediate &lhs, const Immediate &rhs) {
-  assert(lhs.size_ == rhs.size_);
-  Immediate quotient(lhs.size_);
+  DCHECK(lhs.bytes_.size() == rhs.bytes_.size());
+  Immediate quotient(lhs.size());
   uint16_t byte_width = lhs.bytes_.size();
 
   if (!rhs) {
@@ -557,17 +566,17 @@ Immediate operator/(const Immediate &lhs, const Immediate &rhs) {
 }
 
 Immediate operator%(const Immediate &lhs, const Immediate &rhs) {
-  assert(lhs.size_ == rhs.size_);
+  DCHECK(lhs.bytes_.size() == rhs.bytes_.size());
   uint16_t byte_width = lhs.bytes_.size();
 
   if (!rhs) {
     // TODO: raise divide by zero exception
-    return Immediate(lhs.size_);
+    return Immediate(lhs.size());
   }
 
   if (lhs == rhs) {
     // quotient is 1
-    return Immediate(lhs.size_);
+    return Immediate(lhs.size());
   } else if (byte_width == 1) {
     uint8_t lhs8 = static_cast<uint8_t>(lhs);
     uint8_t rhs8 = static_cast<uint8_t>(rhs);
@@ -607,7 +616,7 @@ Immediate operator^(Immediate lhs, const Immediate &rhs) {
 }
 
 Immediate &Immediate::operator&=(const Immediate &rhs) {
-  assert(size_ == rhs.size_);
+  DCHECK(bytes_.size() == rhs.bytes_.size());
 
   for (uint16_t i = 0; i < bytes_.size(); ++i) {
     bytes_[i] &= rhs.bytes_[i];
@@ -617,7 +626,7 @@ Immediate &Immediate::operator&=(const Immediate &rhs) {
 }
 
 Immediate &Immediate::operator|=(const Immediate &rhs) {
-  assert(size_ == rhs.size_);
+  DCHECK(bytes_.size() == rhs.bytes_.size());
 
   for (uint16_t i = 0; i < bytes_.size(); ++i) {
     bytes_[i] |= rhs.bytes_[i];
@@ -627,7 +636,7 @@ Immediate &Immediate::operator|=(const Immediate &rhs) {
 }
 
 Immediate &Immediate::operator^=(const Immediate &rhs) {
-  assert(size_ == rhs.size_);
+  DCHECK(bytes_.size() == rhs.bytes_.size());
 
   for (uint16_t i = 0; i < bytes_.size(); ++i) {
     bytes_[i] ^= rhs.bytes_[i];

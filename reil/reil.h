@@ -113,12 +113,6 @@ struct NativeInstruction {
   std::vector<Instruction> reil;
 };
 
-struct NativeBasicBlock {
-  uint64_t address = 0;
-  uint8_t size = 0;
-  std::vector<NativeInstruction> instructions;
-};
-
 Instruction Add(const Operand& input0, const Operand& input1,
                 const Operand& output);
 Instruction And(const Operand& input0, const Operand& input1,
@@ -191,7 +185,6 @@ inline uint16_t Size(const Operand& operand) {
 std::ostream& operator<<(std::ostream& stream, const Operand& opnd);
 std::ostream& operator<<(std::ostream& stream, const Instruction& ri);
 std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni);
-std::ostream& operator<<(std::ostream& stream, const NativeBasicBlock& nb);
 }  // namespace reil
 
 #define REIL_REIL_H_

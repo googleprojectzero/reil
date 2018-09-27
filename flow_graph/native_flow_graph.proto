@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package reil.proto;
+
+enum NativeEdgeKind {
+  INVALID = 0;
+  FLOW = 1;
+  JUMP = 2;
+  CALL = 3;
+  RETURN = 4;
+  BREAK = 5;
+};
+
+message NativeEdge {
+  optional uint64 source = 1;
+  optional uint64 target = 2;
+  optional NativeEdgeKind kind = 3;
+};
+
+message NativeFlowGraph {
+  repeated NativeEdge edges = 1;
+};

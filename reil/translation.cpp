@@ -15,7 +15,9 @@
 #include "translation.h"
 
 namespace reil {
-Translation::Translation(uint32_t flags) : flags_(flags), translation_() {}
+Translation::Translation(uint32_t flags) : flags_(flags) {
+  translation_.reserve(0x100);
+}
 
 Translation::~Translation() {}
 
@@ -357,6 +359,8 @@ std::vector<Instruction> Translation::Finalise() {
       }
     }
   }
+
+  //std::cerr << tmp_index_ << std::endl;
 
   return std::move(translation_);
 }

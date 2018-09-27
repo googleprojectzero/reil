@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "reil.h"
+#include "absl/types/span.h"
 
 namespace reil {
 class Interpreter {
@@ -70,7 +71,7 @@ class Interpreter {
   void SetRegister(uint32_t index, const Immediate &value);
 
   std::vector<uint8_t> GetMemory(uint64_t address, size_t size);
-  void SetMemory(uint64_t address, const std::vector<uint8_t> &bytes);
+  void SetMemory(uint64_t address, const absl::Span<uint8_t> &bytes);
   void SetMemory(uint64_t address, const uint8_t *bytes, size_t bytes_len);
 };
 }  // namespace reil

@@ -125,7 +125,7 @@ std::vector<uint8_t> Emulator::GetMemory(uint64_t address, size_t size) {
   return interpreter_.GetMemory(address, size);
 }
 
-void Emulator::SetMemory(uint64_t address, const std::vector<uint8_t> &bytes) {
+void Emulator::SetMemory(uint64_t address, const absl::Span<uint8_t> &bytes) {
   interpreter_.SetMemory(address, bytes);
 }
 

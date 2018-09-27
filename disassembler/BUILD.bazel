@@ -24,16 +24,21 @@ package(
 cc_library(
     name = "disassembler",
     srcs = [
-        "first_pass_disassembler.cpp",
-        "function_scan.cpp",
+        "aarch64/disassemble.cpp",
+        "aarch64/find_functions.cpp",
+
+        "disassembler.cpp",
+        "resolve_branches.cpp",
     ],
     hdrs = [
-        "first_pass_disassembler.h",
-        "function_scan.h",
+        "aarch64/disassembler.h",
+        "disassembler.h",
     ],
     deps = [
-        "//control_flow_graph:control_flow_graph",
+        "//flow_graph:flow_graph",
+        "//flow_graph:native_flow_graph",
         "//memory_image:memory_image",
+        "//analysis",
         "//reil:reil",
         "@com_google_glog//:glog",
     ],
@@ -57,9 +62,9 @@ filegroup(
 )
 
 cc_test(
-    name = "function_scan_test",
+    name = "aarch64_find_functions_test",
     srcs = [
-        "function_scan_test.cpp",
+        "aarch64/find_functions_test.cpp",
     ],
     data = [
         ":test_data",
@@ -72,9 +77,24 @@ cc_test(
 )
 
 cc_test(
-    name = "first_pass_disassembler_test",
+    name = "aarch64_disassemble_test",
     srcs = [
-        "first_pass_disassembler_test.cpp",
+        "aarch64/disassemble_test.cpp",
+    ],
+    data = [
+        ":test_data",
+    ],
+    deps = [
+        ":disassembler",
+        "@com_google_googletest//:gtest",
+    ],
+    size = "small",
+)
+
+cc_test(
+    name = "resolve_branches_test",
+    srcs = [
+        "resolve_branches_test.cpp",
     ],
     data = [
         ":test_data",

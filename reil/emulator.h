@@ -16,6 +16,8 @@
 
 #include <vector>
 
+#include "absl/types/span.h"
+
 #include "reil.h"
 
 namespace reil {
@@ -30,7 +32,7 @@ class Emulator {
   virtual void SetRegister(uint32_t index, Immediate value) = 0;
   virtual std::vector<uint8_t> GetMemory(uint64_t address, size_t size) = 0;
   virtual void SetMemory(uint64_t address,
-                         const std::vector<uint8_t>& bytes) = 0;
+                         const absl::Span<uint8_t>& bytes) = 0;
   virtual void SetMemory(uint64_t address, uint8_t* bytes,
                          size_t bytes_len) = 0;
 };

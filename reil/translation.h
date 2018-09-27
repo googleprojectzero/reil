@@ -41,6 +41,8 @@ class Translation {
   uint8_t label_index_ = 0;
   std::vector<Instruction> translation_;
 
+  void ReserveInstructions(uint16_t count);
+
   Operand Tmp(uint16_t size);
   Operand Label();
 

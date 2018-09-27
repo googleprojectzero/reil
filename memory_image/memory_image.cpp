@@ -18,26 +18,28 @@
 
 #include "absl/memory/memory.h"
 #include "memory_image/memory_image.pb.h"
+
+#define GOOGLE_STRIP_LOG 1
 #include "glog/logging.h"
 
 namespace reil {
 MemoryImage::MemoryImage(std::string architecture_name)
     : architecture_name_(architecture_name) {}
 
-bool MemoryImage::readable(uint64_t address, uint64_t size) {
+bool MemoryImage::readable(uint64_t address, uint64_t size) const {
   return AccessOk(address, size, true, false, false);
 }
 
-bool MemoryImage::writable(uint64_t address, uint64_t size) {
+bool MemoryImage::writable(uint64_t address, uint64_t size) const {
   return AccessOk(address, size, false, true, false);
 }
 
-bool MemoryImage::executable(uint64_t address, uint64_t size) {
+bool MemoryImage::executable(uint64_t address, uint64_t size) const {
   return AccessOk(address, size, false, false, true);
 }
 
 bool MemoryImage::AccessOk(uint64_t address, uint64_t size, bool read,
-                           bool write, bool execute) {
+                           bool write, bool execute) const {
   bool found = false;
   bool readable = read;
   bool writable = write;
@@ -59,26 +61,18 @@ bool MemoryImage::AccessOk(uint64_t address, uint64_t size, bool read,
   return false;
 }
 
-std::pair<const uint8_t*, uint64_t> MemoryImage::Read(uint64_t address) {
-  std::pair<const uint8_t*, uint64_t> result;
-  result.first = nullptr;
-  result.second = 0;
+absl::Span<const uint8_t> MemoryImage::Read(uint64_t address) const {
+  absl::Span<const uint8_t> result;
   for (auto& mapping : mappings_) {
     if (mapping.address <= address) {
       uint64_t offset = address - mapping.address;
       if (offset < mapping.data.size()) {
-        result.first = (const uint8_t*)(&mapping.data[offset]);
-        result.second = mapping.data.size() - offset;
+        result = absl::Span<const uint8_t>(&mapping.data[offset],
+                                           mapping.data.size() - offset);
       }
     }
   }
   return result;
-}
-
-std::vector<uint8_t> MemoryImage::Read(uint64_t address, uint64_t size) {
-  std::vector<uint8_t> bytes;
-  // TODO: implement
-  return bytes;
 }
 
 const std::vector<Mapping>& MemoryImage::mappings() const { return mappings_; }

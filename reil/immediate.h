@@ -17,26 +17,25 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <vector>
+
+#include "absl/container/inlined_vector.h"
+#include "absl/types/span.h"
 
 namespace reil {
 class Immediate {
  private:
-  uint16_t size_;
-  std::vector<uint8_t> bytes_;
+  absl::InlinedVector<uint8_t, 8> bytes_;
 
  public:
   Immediate();
 
   explicit Immediate(uint16_t size, uint64_t value = 0);
   Immediate(uint16_t size, const Immediate &value);
-  Immediate(const std::vector<uint8_t> &bytes);
+  Immediate(const absl::Span<uint8_t> &bytes);
   Immediate(const uint8_t *bytes, size_t bytes_len);
 
-  Immediate(const Immediate &value);
-
   uint16_t size() const;
-  std::vector<uint8_t> bytes();
+  absl::Span<uint8_t> bytes();
 
   static Immediate Mask(uint16_t size, uint16_t mask_size);
   static Immediate SignBit(uint16_t size, uint16_t mask_size);
@@ -107,7 +106,6 @@ class Immediate {
 
   friend std::ostream &operator<<(std::ostream &stream, const Immediate &imm);
 };
-
 }  // namespace reil
 
 #define REIL_IMMEDIATE_H_

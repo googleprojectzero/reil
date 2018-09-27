@@ -40,7 +40,8 @@ cc_library(
     ],
     deps = [
         ":memory_image_cc_proto",
-        "@com_google_abseil//absl/memory:memory",
+        "@com_google_abseil//absl/memory",
+        "@com_google_abseil//absl/types:span",
         "@com_google_glog//:glog"
     ],
 )

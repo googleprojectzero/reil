@@ -18,6 +18,8 @@
 #include <set>
 #include <vector>
 
+#include "absl/types/span.h"
+
 namespace reil {
 struct Mapping {
   uint64_t address;
@@ -36,14 +38,13 @@ class MemoryImage {
 
   std::string architecture_name() const { return architecture_name_; }
 
-  bool readable(uint64_t address, uint64_t size = 0);
-  bool writable(uint64_t address, uint64_t size = 0);
-  bool executable(uint64_t address, uint64_t size = 0);
+  bool readable(uint64_t address, uint64_t size = 0) const;
+  bool writable(uint64_t address, uint64_t size = 0) const;
+  bool executable(uint64_t address, uint64_t size = 0) const;
 
   bool AccessOk(uint64_t address, uint64_t size, bool read, bool write,
-                bool execute);
-  std::pair<const uint8_t*, uint64_t> Read(uint64_t address);
-  std::vector<uint8_t> Read(uint64_t address, uint64_t size);
+                bool execute) const;
+  absl::Span<const uint8_t> Read(uint64_t address) const;
 
   const std::vector<Mapping>& mappings() const;
 

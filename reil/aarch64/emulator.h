@@ -18,6 +18,8 @@
 #include "../interpreter.h"
 #include "translator.h"
 
+#include "absl/types/span.h"
+
 namespace reil {
 namespace aarch64 {
 class Emulator : public reil::Emulator {
@@ -36,7 +38,7 @@ class Emulator : public reil::Emulator {
   Immediate GetRegister(uint32_t index) const override;
   void SetRegister(uint32_t index, Immediate value) override;
   std::vector<uint8_t> GetMemory(uint64_t address, size_t size) override;
-  void SetMemory(uint64_t address, const std::vector<uint8_t> &bytes) override;
+  void SetMemory(uint64_t address, const absl::Span<uint8_t> &bytes) override;
   void SetMemory(uint64_t address, uint8_t *bytes, size_t bytes_len) override;
 };
 

@@ -29,14 +29,6 @@ static constexpr uint32_t bit(uint32_t opcode, uint8_t lsb) {
   return (opcode >> lsb) & 1;
 }
 
-static uint64_t sign_extend(uint64_t value, uint8_t msb) {
-  uint64_t sign_mask = 0;
-  if ((value >> msb) & 1) {
-    sign_mask = (0xffffffffffffffffull << (msb + 1));
-  }
-  return sign_mask | value;
-}
-
 static uint64_t sign_extend_bits(uint32_t opcode, uint8_t lsb, uint8_t msb) {
   uint32_t mask = (0xffffffffu >> (32 - (msb - lsb + 1))) << lsb;
   uint64_t sign_mask = 0;
@@ -152,7 +144,7 @@ static Instruction DecodePcRelativeAddressing(uint32_t opcode) {
 
   insn.operands.push_back(x(64, opcode, 0, 4));
   insn.operands.push_back(Immediate(
-      64, sign_extend((bits(opcode, 5, 23) << 2) | bits(opcode, 29, 30), 21)));
+      64, (sign_extend_bits(opcode, 5, 23) << 2) | bits(opcode, 29, 30)));
 
   Shift shift(Shift::kNone, 0);
   if (insn.opcode == kAdrp) {

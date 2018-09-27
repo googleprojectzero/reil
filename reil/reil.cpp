@@ -450,11 +450,4 @@ std::ostream& operator<<(std::ostream& stream, const NativeInstruction& ni) {
   //}
   return stream;
 }
-
-std::ostream& operator<<(std::ostream& stream, const NativeBasicBlock& nb) {
-  for (const auto& ni : nb.instructions) {
-    stream << ni << std::endl;
-  }
-  return stream;
-}
 }  // namespace reil

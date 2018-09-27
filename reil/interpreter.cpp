@@ -37,6 +37,7 @@ Immediate Interpreter::GetOperand(const Operand &op) const {
 }
 
 void Interpreter::SetOperand(const Operand &op, const Immediate &value) {
+  std::cerr << op << " = " << value << std::endl;
   if (absl::holds_alternative<Register>(op)) {
     registers_[absl::get<Register>(op).index] = value;
   } else if (absl::holds_alternative<Temporary>(op)) {
@@ -90,7 +91,7 @@ void Interpreter::Ldm(const Instruction &ri) {
   Immediate a = GetOperand(ri.input0);
   uint64_t address = static_cast<uint64_t>(a);
   std::vector<uint8_t> bytes = GetMemory(address, Size(ri.output) / 8);
-  SetOperand(ri.output, Immediate(bytes));
+  SetOperand(ri.output, Immediate(absl::Span<uint8_t>(bytes)));
 }
 
 void Interpreter::Mod(const Instruction &ri) {
@@ -117,8 +118,7 @@ void Interpreter::Stm(const Instruction &ri) {
   Immediate a = GetOperand(ri.input0);
   Immediate b = GetOperand(ri.output);
   uint64_t address = static_cast<uint64_t>(b);
-  std::vector<uint8_t> bytes = a.bytes();
-  SetMemory(address, bytes);
+  SetMemory(address, a.bytes());
 }
 
 void Interpreter::Str(const Instruction &ri) {
@@ -226,6 +226,7 @@ void Interpreter::Start(NativeInstruction ni) {
 
 uint16_t Interpreter::SingleStep() {
   const Instruction &ri = instructions_[offset_++];
+  std::cerr << ri << std::endl;
 
   switch (ri.opcode) {
     case Opcode::Add: {
@@ -356,7 +357,7 @@ std::vector<uint8_t> Interpreter::GetMemory(uint64_t address, size_t size) {
 }
 
 void Interpreter::SetMemory(uint64_t address,
-                            const std::vector<uint8_t> &bytes) {
+                            const absl::Span<uint8_t> &bytes) {
   SetMemory(address, bytes.data(), bytes.size());
 }
 

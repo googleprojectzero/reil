@@ -19,7 +19,8 @@
 #include <set>
 
 #include "absl/types/span.h"
-#include "control_flow_graph/instruction_graph.h"
+#include "flow_graph/flow_graph.h"
+#include "flow_graph/instruction_provider.h"
 #include "glog/logging.h"
 #include "memory_image/memory_image.h"
 #include "reil/reil.h"
@@ -27,72 +28,125 @@
 namespace reil {
 namespace analysis {
 template <class T>
-bool Solve(
-    std::shared_ptr<InstructionGraph> instruction_graph,
-    std::map<Edge, T>& edge_states,
-    std::function<T(absl::Span<const T*>)> merge,
-    std::function<T(const Edge&, const Instruction&, const T&)> transform,
-    std::function<bool(const T&, const T&)> compare,
-    std::function<std::string(const T&)> print, 
-    size_t step_limit = 0x1000) {
-  std::set<Node> node_queue;
-  for (auto& edge_state : edge_states) {
-    node_queue.insert(edge_state.first.target);
-  }
-
-  size_t step_count = 0;
-  while (step_count++ < step_limit && !node_queue.empty()) {
-    Node node = *node_queue.begin();
-    node_queue.erase(node_queue.begin());
-
-    if (node == 0) continue;
-
-    T in_state;
-    std::vector<const T*> in_states;
-    for (auto& in_edge : instruction_graph->incoming_edges(node)) {
-      auto in_edge_state = edge_states.find(in_edge);
-      if (in_edge_state == edge_states.end()) continue;
-      in_states.push_back(&in_edge_state->second);
-    }
-    in_state = merge(absl::Span<const T*>(in_states));
-
-    Instruction ri = instruction_graph->Instruction(node);
-    for (auto& out_edge : instruction_graph->outgoing_edges(node)) {
-      auto out_state = transform(out_edge, ri, in_state);
-      auto out_edge_state = edge_states.find(out_edge);
-
-      if (out_edge_state == edge_states.end()) {
-        VLOG(1) << "new_edge_state: " << out_edge << " " << print(out_state);
-
-        edge_states[out_edge] = out_state;
-        node_queue.insert(out_edge.target);
-      } else if (compare(out_edge_state->second, out_state)) {
-        if (compare(out_state, out_edge_state->second)) {
-          VLOG(2) << "no_change";
-          continue;
-        }
-        VLOG(1) << "updated_edge_state: " << out_edge << " "
-                << print(out_state);
-
-        edge_states[out_edge] = out_state;
-        node_queue.insert(out_edge.target);
-      } else {
-        CHECK(!compare(out_state, out_edge_state->second))
-            << "non monotonic state transition! " << print(out_state) << " -> "
-            << print(out_edge_state->second);
+bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
+                   std::map<Edge, T>& edge_states,
+                   std::function<T(absl::Span<const T*>)> MergeStates,
+                   size_t step_limit = 0x1000,
+                   size_t basic_block_limit = 0x1000) {
+  std::set<Node> queue;
+  for (auto& in_edge_iter : rfg.incoming_edges()) {
+    for (auto& in_edge : in_edge_iter.second) {
+      auto edge_state_iter = edge_states.find(in_edge);
+      if (edge_state_iter != edge_states.end()) {
+        queue.insert(in_edge_iter.first);
       }
     }
   }
+
+  size_t step_count = 0;
+  std::shared_ptr<NativeInstruction> ni;
+  while (step_count++ < step_limit && !queue.empty()) {
+    Node node = *queue.begin();
+    queue.erase(queue.begin());
+
+    if (node == 0) continue;
+
+    std::vector<const T*> in_states;
+    for (auto& in_edge : rfg.incoming_edges(node)) {
+      auto in_edge_state = edge_states.find(in_edge);
+      if (in_edge_state == edge_states.end()) {
+        continue;
+      }
+      in_states.push_back(&in_edge_state->second);
+    }
+    auto in_state = MergeStates(absl::Span<const T*>(in_states));
+
+    auto out_edge_iter = rfg.outgoing_edges().lower_bound(node);
+    if (out_edge_iter == rfg.outgoing_edges().end() ||
+        out_edge_iter->first.address - node.address > basic_block_limit) {
+      // this basic block is either absurd, or not contained in this graph.
+      continue;
+    }
+
+    if (!ni || ni->address != node.address) {
+      ni = ip.NativeInstruction(node.address);
+    }
+
+    DCHECK(node.offset < ni->reil.size());
+    Instruction ri = ni->reil[node.offset];
+    VLOG(2) << in_state;
+    VLOG(3) << node << " " << ri;
+    while (node != out_edge_iter->first) {
+      Node next_node(node.address, node.offset + 1);
+      // NB: we don't run across native instruction boundaries here, so we don't
+      // need to check for that or request a new native instruction.
+
+      in_state.Transform(Edge(node, next_node, EdgeKind::kFlow), ri);
+      if (!in_state.Valid()) {
+        break;
+      }
+
+      node = next_node;
+      DCHECK(node.offset < ni->reil.size());
+      ri = ni->reil[node.offset];
+      VLOG(4) << in_state;
+      VLOG(3) << node << " " << ri;
+    }
+
+    if (!in_state.Valid()) {
+      continue;
+    }
+
+    VLOG(1) << *ni;
+    for (auto& out_edge : out_edge_iter->second) {
+      auto out_state = in_state;
+      out_state.Transform(out_edge, ri);
+      std::cerr << out_edge << " " << out_state << std::endl;
+      if (!out_state.Valid()) {
+        std::cerr << out_edge << " invalid" << std::endl;
+        continue;
+      }
+
+      auto out_edge_state = edge_states.find(out_edge);
+      if (out_edge_state == edge_states.end()) {
+        VLOG(1) << "new_edge_state: " << out_edge << " " << out_state;
+        edge_states.emplace(std::make_pair(out_edge, std::move(out_state)));
+        if (out_edge.kind < EdgeKind::kNativeCall) {
+          queue.insert(out_edge.target);
+        }
+      } else if (out_edge_state->second != out_state) {
+        VLOG(1) << "updated_edge_state: " << out_edge << " " << out_state;
+        out_edge_state->second = std::move(out_state);
+        if (out_edge.kind < EdgeKind::kNativeCall) {
+          queue.insert(out_edge.target);
+        }
+      } else {
+        VLOG(1) << "equal_edge_state";
+      }
+    }
+  }
+
+  VLOG(1) << "solver finished after " << step_count << " / " << step_limit;
 
   return step_count < step_limit;
 }
 
 template <class T>
-bool Solve(
-    std::shared_ptr<InstructionGraph> instruction_graph,
-    std::map<Edge, T>& edge_states, 
-    size_t step_limit = 0x1000) {
-  return Solve<T>(instruction_graph, edge_states, T::Merge, T::Transform, T::Compare, T::Print, step_limit);
+bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
+                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000,
+                   size_t basic_block_limit = 0x1000) {
+  return SolveFunction<T>(rfg, ip, edge_states, T::Merge, step_limit,
+                          basic_block_limit);
+}
+
+template <class T>
+bool SolveFunction(FlowGraph& rfg, const MemoryImage& memory_image,
+                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000,
+                   size_t basic_block_limit = 0x1000) {
+  std::unique_ptr<InstructionProvider> ip =
+      InstructionProvider::Create(memory_image);
+  return SolveFunction<T>(rfg, *ip, edge_states, T::Merge, step_limit,
+                          basic_block_limit);
 }
 }  // namespace analysis
 }  // namespace reil
