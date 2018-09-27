@@ -22,7 +22,6 @@
 #include "absl/types/span.h"
 #include "analysis/dataflow.h"
 #include "analysis/solver.h"
-#include "disassembler/disassembler.h"
 #include "flow_graph/flow_graph.h"
 #include "gtest/gtest.h"
 #include "memory_image/memory_image.h"
