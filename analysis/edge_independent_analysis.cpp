@@ -15,7 +15,7 @@
 #include "analysis/edge_independent_analysis.h"
 
 #define GOOGLE_STRIP_LOG 1
-#include <glog/logging.h>
+#include "glog/logging.h"
 
 namespace reil {
 namespace analysis {
