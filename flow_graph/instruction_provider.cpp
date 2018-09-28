@@ -45,7 +45,7 @@ std::shared_ptr<reil::NativeInstruction> InstructionProvider::NativeInstruction(
   if (!ni) {
     if (memory_image_.executable(address)) {
       absl::Span<const uint8_t> bytes = memory_image_.Read(address);
-      ni = std::make_shared<reil::NativeInstruction>(std::move(NativeInstruction(address, bytes)));
+      ni = std::make_shared<reil::NativeInstruction>(NativeInstruction(address, bytes));
       cache_[address] = ni;
       cache__[cache__index_++ % cache__.size()] = ni;
     }
