@@ -69,6 +69,9 @@ void EdgeIndependentAnalysis::TransformIte(const Instruction& ri) {}
 
 void EdgeIndependentAnalysis::OnNativeInstructionEnd() {}
 
+EdgeIndependentAnalysis::~EdgeIndependentAnalysis() {
+}
+
 bool EdgeIndependentAnalysis::Valid() const { return valid_; }
 
 void EdgeIndependentAnalysis::Invalidate() { valid_ = false; }

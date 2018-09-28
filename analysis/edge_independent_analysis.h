@@ -53,6 +53,8 @@ class EdgeIndependentAnalysis {
   virtual void OnNativeInstructionEnd();
 
  public:
+  virtual ~EdgeIndependentAnalysis();
+
   virtual bool Valid() const;
   virtual void Invalidate();
   virtual void Transform(const Edge& edge, const Instruction& ri);
