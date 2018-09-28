@@ -15,7 +15,6 @@
 #include "flow_graph/native_flow_graph.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
-#include "memory_image/memory_image.h"
 
 namespace reil {
 namespace flow_graph {
