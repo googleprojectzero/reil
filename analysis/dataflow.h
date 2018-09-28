@@ -16,6 +16,8 @@
 
 #include <functional>
 
+#include "glog/logging.h"
+
 #include "analysis/edge_dependent_analysis.h"
 #include "analysis/register_state.h"
 #include "analysis/temporary_state.h"

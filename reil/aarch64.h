@@ -14,9 +14,9 @@
 
 #ifndef REIL_AARCH64_H_
 
-#include "aarch64/decoder.h"
-#include "aarch64/emulator.h"
-#include "aarch64/translator.h"
+#include "reil/aarch64/decoder.h"
+#include "reil/aarch64/emulator.h"
+#include "reil/aarch64/translator.h"
 
 #define REIL_AARCH64_H_
 #endif  // REIL_AARCH64_H_
