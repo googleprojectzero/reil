@@ -35,7 +35,7 @@ void FlowGraph::RemoveEdge(const Edge& edge) {
   auto out_edge_iter = outgoing_edges_.find(edge.source);
   if (out_edge_iter != outgoing_edges_.end()) {
     out_edge_iter->second.erase(edge);
-    if (out_edge_iter->second.size() == 0) {
+    if (out_edge_iter->second.empty()) {
       outgoing_edges_.erase(out_edge_iter);
     }
   }
@@ -43,7 +43,7 @@ void FlowGraph::RemoveEdge(const Edge& edge) {
   auto in_edge_iter = incoming_edges_.find(edge.target);
   if (in_edge_iter != incoming_edges_.end()) {
     in_edge_iter->second.erase(edge);
-    if (in_edge_iter->second.size() == 0) {
+    if (in_edge_iter->second.empty()) {
       incoming_edges_.erase(in_edge_iter);
     }
   }
