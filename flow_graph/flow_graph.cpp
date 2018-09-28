@@ -15,11 +15,9 @@
 #include "flow_graph/flow_graph.h"
 
 #include "absl/memory/memory.h"
+#include "glog/logging.h"
 
 #include "reil/aarch64.h"
-
-#define GOOGLE_STRIP_LOG 0
-#include "glog/logging.h"
 
 namespace reil {
 static std::set<Edge> no_edges;

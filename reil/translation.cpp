@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "translation.h"
+#include "reil/translation.h"
 
 namespace reil {
 Translation::Translation(uint32_t flags) : flags_(flags) {

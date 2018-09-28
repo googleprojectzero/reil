@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "emulator.h"
+#include "reil/aarch64/emulator.h"
 
 namespace reil {
 namespace aarch64 {

@@ -21,7 +21,7 @@
 
 #include "absl/types/variant.h"
 
-#include "immediate.h"
+#include "reil/immediate.h"
 
 namespace reil {
 

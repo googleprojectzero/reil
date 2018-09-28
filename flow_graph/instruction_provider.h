@@ -21,9 +21,7 @@
 #include "absl/types/span.h"
 
 #include "flow_graph/node.h"
-
 #include "memory_image/memory_image.h"
-
 #include "reil/reil.h"
 #include "reil/translation.h"
 

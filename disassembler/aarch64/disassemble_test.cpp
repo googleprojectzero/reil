@@ -15,9 +15,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "disassembler/disassembler.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
+
+#include "disassembler/disassembler.h"
 
 namespace reil {
 namespace disassembler {

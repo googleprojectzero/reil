@@ -15,7 +15,6 @@
 #include <cstdint>
 #include <set>
 
-#define GOOGLE_STRIP_LOG 0
 #include "glog/logging.h"
 
 #include "analysis/dataflow.h"

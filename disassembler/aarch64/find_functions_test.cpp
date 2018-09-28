@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "disassembler/aarch64/disassembler.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
+
+#include "disassembler/disassembler.h"
 
 namespace reil {
 namespace disassembler {

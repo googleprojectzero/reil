@@ -20,7 +20,6 @@
 #include "memory_image/memory_image.h"
 #include "reil/aarch64/decoder.h"
 
-#define GOOGLE_STRIP_LOG 0
 #include "glog/logging.h"
 
 namespace reil {

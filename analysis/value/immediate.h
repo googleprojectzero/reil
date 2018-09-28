@@ -16,7 +16,6 @@
 
 #include "analysis/value/operations.h"
 #include "analysis/value/top.h"
-
 #include "reil/reil.h"
 
 namespace reil {

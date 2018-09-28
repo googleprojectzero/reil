@@ -17,10 +17,9 @@
 #include <fstream>
 
 #include "absl/memory/memory.h"
-#include "memory_image/memory_image.pb.h"
-
-#define GOOGLE_STRIP_LOG 1
 #include "glog/logging.h"
+
+#include "memory_image/memory_image.pb.h"
 
 namespace reil {
 MemoryImage::MemoryImage(std::string architecture_name)

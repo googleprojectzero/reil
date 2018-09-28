@@ -15,11 +15,9 @@
 #include "flow_graph/instruction_provider.h"
 
 #include "absl/memory/memory.h"
+#include "glog/logging.h"
 
 #include "reil/aarch64.h"
-
-#define GOOGLE_STRIP_LOG 1
-#include "glog/logging.h"
 
 namespace reil {
 uint64_t InstructionProvider::NextNativeInstruction(uint64_t address) {

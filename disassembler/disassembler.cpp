@@ -14,10 +14,9 @@
 
 #include "disassembler/disassembler.h"
 
-#include "disassembler/aarch64/disassembler.h"
-
-#define GOOGLE_STRIP_LOG 1
 #include "glog/logging.h"
+
+#include "disassembler/aarch64/disassembler.h"
 
 namespace reil {
 namespace disassembler {

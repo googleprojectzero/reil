@@ -20,12 +20,10 @@
 #include <set>
 
 #include "flow_graph/edge.h"
-#include "flow_graph/native_flow_graph.h"
 #include "flow_graph/instruction_provider.h"
+#include "flow_graph/native_flow_graph.h"
 #include "flow_graph/node.h"
-
 #include "memory_image/memory_image.h"
-
 #include "reil/reil.h"
 
 namespace reil {

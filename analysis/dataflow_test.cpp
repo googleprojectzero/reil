@@ -16,14 +16,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "glog/logging.h"
-
 #include "absl/memory/memory.h"
 #include "absl/types/span.h"
+#include "glog/logging.h"
+#include "gtest/gtest.h"
+
 #include "analysis/dataflow.h"
 #include "analysis/solver.h"
 #include "flow_graph/flow_graph.h"
-#include "gtest/gtest.h"
 #include "memory_image/memory_image.h"
 
 namespace reil {

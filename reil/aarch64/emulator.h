@@ -14,9 +14,9 @@
 
 #ifndef REIL_AARCH64_EMULATOR_H_
 
-#include "../emulator.h"
-#include "../interpreter.h"
-#include "translator.h"
+#include "reil/emulator.h"
+#include "reil/interpreter.h"
+#include "reil/aarch64/translator.h"
 
 #include "absl/types/span.h"
 

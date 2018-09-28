@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "translator.h"
+#include "reil/aarch64/translator.h"
 
 #include <cassert>
 #include <cstring>
 #include <map>
 #include <sstream>
 
-#include "../immediate.h"
+#include "reil/immediate.h"
 
 namespace reil {
 namespace aarch64 {

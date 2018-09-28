@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "flow_graph/native_flow_graph.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
+
+#include "flow_graph/native_flow_graph.h"
 
 namespace reil {
 namespace flow_graph {

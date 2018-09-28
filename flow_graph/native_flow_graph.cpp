@@ -18,13 +18,10 @@
 #include <fstream>
 
 #include "absl/memory/memory.h"
-
-#include "flow_graph/native_flow_graph.pb.h"
+#include "glog/logging.h"
 
 #include "external/com_google_binexport/binexport2.pb.h"
-
-#define GOOGLE_STRIP_LOG 1
-#include "glog/logging.h"
+#include "flow_graph/native_flow_graph.pb.h"
 
 namespace reil {
 std::set<NativeEdge> no_edges;

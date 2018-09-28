@@ -18,7 +18,7 @@
 
 #include "absl/types/span.h"
 
-#include "reil.h"
+#include "reil/reil.h"
 
 namespace reil {
 class Emulator {

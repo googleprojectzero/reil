@@ -19,9 +19,10 @@
 #include <set>
 
 #include "absl/types/span.h"
+#include "glog/logging.h"
+
 #include "flow_graph/flow_graph.h"
 #include "flow_graph/instruction_provider.h"
-#include "glog/logging.h"
 #include "memory_image/memory_image.h"
 #include "reil/reil.h"
 

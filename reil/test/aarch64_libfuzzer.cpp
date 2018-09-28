@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "absl/types/span.h"
+
 #include "reil/aarch64.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t data_len) {

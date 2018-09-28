@@ -15,11 +15,10 @@
 #ifndef REIL_TRANSLATION_H_
 
 #include <cstdint>
-
 #include <memory>
 #include <vector>
 
-#include "reil.h"
+#include "reil/reil.h"
 
 namespace reil {
 enum TranslationFlags {

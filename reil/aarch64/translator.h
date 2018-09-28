@@ -17,10 +17,9 @@
 #include <cstdint>
 #include <tuple>
 
-#include "../reil.h"
-#include "../translation.h"
-
-#include "decoder.h"
+#include "reil/aarch64/decoder.h"
+#include "reil/reil.h"
+#include "reil/translation.h"
 
 namespace reil {
 namespace aarch64 {

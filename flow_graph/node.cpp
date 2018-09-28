@@ -14,7 +14,6 @@
 
 #include "flow_graph/node.h"
 
-#define GOOGLE_STRIP_LOG 1
 #include "glog/logging.h"
 
 namespace reil {
