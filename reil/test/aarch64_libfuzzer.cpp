@@ -16,6 +16,7 @@
 #include <iostream>
 #include <vector>
 
+#include "absl/types/span.h"
 #include "reil/aarch64.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t data_len) {
@@ -36,7 +37,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t data_len) {
   memcpy(&x3, &data[40], sizeof(x3));
 
   reil::aarch64::Emulator reil_emu(reil::kDefaultFlags);
-  reil_emu.SetMemory(0x1000, bytes);
+  reil_emu.SetMemory(0x1000, absl::Span<const uint8_t>(bytes));
   reil_emu.SetRegister(reil::aarch64::kX0, reil::Imm64(x0));
   reil_emu.SetRegister(reil::aarch64::kX1, reil::Imm64(x1));
   reil_emu.SetRegister(reil::aarch64::kX2, reil::Imm64(x2));
