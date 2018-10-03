@@ -46,6 +46,8 @@ class MemoryImage {
                 bool execute) const;
   absl::Span<const uint8_t> Read(uint64_t address) const;
 
+  void AddMapping(const Mapping& mapping);
+  void AddMapping(Mapping&& mapping);
   const std::vector<Mapping>& mappings() const;
 
   static std::unique_ptr<MemoryImage> Load(std::string path);

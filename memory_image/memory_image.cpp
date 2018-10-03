@@ -74,6 +74,14 @@ absl::Span<const uint8_t> MemoryImage::Read(uint64_t address) const {
   return result;
 }
 
+void MemoryImage::AddMapping(const Mapping& mapping) {
+  mappings_.push_back(mapping);
+}
+
+void MemoryImage::AddMapping(Mapping&& mapping) {
+  mappings_.emplace_back(std::move(mapping));
+}
+
 const std::vector<Mapping>& MemoryImage::mappings() const { return mappings_; }
 
 std::unique_ptr<MemoryImage> MemoryImage::Load(std::string path) {
@@ -99,7 +107,7 @@ std::unique_ptr<MemoryImage> MemoryImage::Load(std::string path) {
           proto_mapping.executable(),
       });
 
-      memory_image->mappings_.push_back(mapping);
+      memory_image->AddMapping(std::move(mapping));
     }
   }
   return memory_image;
