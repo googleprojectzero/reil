@@ -20,6 +20,8 @@
 
 #include "flow_graph/native_edge.h"
 
+#include "external/com_google_binexport/binexport2.pb.h"
+
 namespace reil {
 class NativeFlowGraph {
   std::map<uint64_t, std::set<NativeEdge>> outgoing_edges_;
@@ -50,6 +52,8 @@ class NativeFlowGraph {
 
   void Save(std::string path);
   static std::unique_ptr<NativeFlowGraph> Load(std::string path);
+  static std::map<uint64_t, std::unique_ptr<NativeFlowGraph>> LoadBinexport2(
+      const BinExport2& bx2);
   static std::map<uint64_t, std::unique_ptr<NativeFlowGraph>> LoadBinexport2(
       std::string path);
 };

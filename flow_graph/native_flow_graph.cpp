@@ -219,6 +219,66 @@ std::unique_ptr<NativeFlowGraph> NativeFlowGraph::Load(std::string path) {
 }
 
 std::map<uint64_t, std::unique_ptr<NativeFlowGraph>>
+NativeFlowGraph::LoadBinexport2(const BinExport2& bx2) {
+  std::map<uint64_t, std::unique_ptr<NativeFlowGraph>> result;
+  std::map<int, uint64_t> insn_address;
+  std::map<int, uint8_t> insn_size;
+  uint64_t next_address = 0;
+
+  for (int i = 0; i < bx2.instruction_size(); ++i) {
+    uint64_t address = bx2.instruction(i).address();
+    uint8_t size = bx2.instruction(i).raw_bytes().size();
+    if (!address) {
+      address = next_address;
+    }
+    next_address = address + size;
+    insn_address[i] = address;
+    insn_size[i] = size;
+  }
+
+  std::map<int, uint64_t> bb_start;
+  std::map<int, uint64_t> bb_end;
+
+  for (int i = 0; i < bx2.basic_block_size(); ++i) {
+    int begin_index = bx2.basic_block(i).instruction_index(0).begin_index();
+    int end_index = bx2.basic_block(i).instruction_index(0).end_index();
+    bb_start[i] = insn_address[begin_index];
+    bb_end[i] = insn_address[end_index];
+  }
+
+  // TODO: Add call edges to the resulting cfgs (from binexport callgraph)
+
+  for (int i = 0; i < bx2.flow_graph_size(); ++i) {
+    const BinExport2::FlowGraph& bx2_fg = bx2.flow_graph(i);
+    std::unique_ptr<NativeFlowGraph> nfg =
+        absl::make_unique<NativeFlowGraph>();
+
+    nfg->AddEdge(0, bb_start[bx2_fg.entry_basic_block_index()],
+                 NativeEdgeKind::kCall);
+    for (int j = 0; j < bx2_fg.edge_size(); ++j) {
+      int src_index = bx2_fg.edge(j).source_basic_block_index();
+      int tgt_index = bx2_fg.edge(j).target_basic_block_index();
+      nfg->AddEdge(bb_end[src_index], bb_start[tgt_index],
+                   NativeEdgeKind::kJump);
+    }
+
+    // TODO: this is probably not ideal, but can't think of a better solution
+    // for right now. we expect to have a return edge to 0 at all function
+    // return edges, but binexport doesn't contain return edges at all.
+    for (int j = 0; j < bx2_fg.basic_block_index_size(); ++j) {
+      int index = bx2_fg.basic_block_index(j);
+      if (nfg->outgoing_edges(bb_end[index]).empty()) {
+        nfg->AddEdge(bb_end[index], 0, NativeEdgeKind::kReturn);
+      }
+    }
+
+    result[bb_start[bx2_fg.entry_basic_block_index()]] = std::move(nfg);
+  }
+
+  return result;
+}
+
+std::map<uint64_t, std::unique_ptr<NativeFlowGraph>>
 NativeFlowGraph::LoadBinexport2(std::string path) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -227,59 +287,7 @@ NativeFlowGraph::LoadBinexport2(std::string path) {
 
   std::fstream input(path, std::ios::in | std::ios::binary);
   if (input && bx2.ParseFromIstream(&input)) {
-    std::map<int, uint64_t> insn_address;
-    std::map<int, uint8_t> insn_size;
-    uint64_t next_address = 0;
-
-    for (int i = 0; i < bx2.instruction_size(); ++i) {
-      uint64_t address = bx2.instruction(i).address();
-      uint8_t size = bx2.instruction(i).raw_bytes().size();
-      if (!address) {
-        address = next_address;
-      }
-      next_address = address + size;
-      insn_address[i] = address;
-      insn_size[i] = size;
-    }
-
-    std::map<int, uint64_t> bb_start;
-    std::map<int, uint64_t> bb_end;
-
-    for (int i = 0; i < bx2.basic_block_size(); ++i) {
-      int begin_index = bx2.basic_block(i).instruction_index(0).begin_index();
-      int end_index = bx2.basic_block(i).instruction_index(0).end_index();
-      bb_start[i] = insn_address[begin_index];
-      bb_end[i] = insn_address[end_index];
-    }
-
-    // TODO: Add call edges to the resulting cfgs (from binexport callgraph)
-
-    for (int i = 0; i < bx2.flow_graph_size(); ++i) {
-      const BinExport2::FlowGraph& bx2_fg = bx2.flow_graph(i);
-      std::unique_ptr<NativeFlowGraph> nfg =
-          absl::make_unique<NativeFlowGraph>();
-
-      nfg->AddEdge(0, bb_start[bx2_fg.entry_basic_block_index()],
-                   NativeEdgeKind::kCall);
-      for (int j = 0; j < bx2_fg.edge_size(); ++j) {
-        int src_index = bx2_fg.edge(j).source_basic_block_index();
-        int tgt_index = bx2_fg.edge(j).target_basic_block_index();
-        nfg->AddEdge(bb_end[src_index], bb_start[tgt_index],
-                     NativeEdgeKind::kJump);
-      }
-
-      // TODO: this is probably not ideal, but can't think of a better solution
-      // for right now. we expect to have a return edge to 0 at all function
-      // return edges, but binexport doesn't contain return edges at all.
-      for (int j = 0; j < bx2_fg.basic_block_index_size(); ++j) {
-        int index = bx2_fg.basic_block_index(j);
-        if (nfg->outgoing_edges(bb_end[index]).empty()) {
-          nfg->AddEdge(bb_end[index], 0, NativeEdgeKind::kReturn);
-        }
-      }
-
-      result[bb_start[bx2_fg.entry_basic_block_index()]] = std::move(nfg);
-    }
+    result = LoadBinexport2(bx2);
   }
 
   return result;
