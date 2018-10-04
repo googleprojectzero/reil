@@ -120,7 +120,7 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(const MemoryImage& memory_image,
     }
 
     Node bb_start = nfg.BasicBlockStart(in_iter.first);
-    Node bb_end = ip.NextNativeInstruction(nfg.BasicBlockEnd(out_iter->first));
+    Node bb_end = ip.NextNativeInstruction(nfg.BasicBlockEnd(in_iter.first));
 
     if (bb_end.address - bb_start.address > basic_block_limit) {
       LOG(WARNING) << "basic_block_too_large: " << bb_start << " " << bb_end;
@@ -152,7 +152,7 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(const MemoryImage& memory_image,
         // NB: BinExport2 NativeFlowGraphs may have missing edges on call
         // instructions where target could not be resolved.
         if (nfg.outgoing_edges().count(node.address)) {
-          edges = nfg.outgoing_edges().at(node.address)
+          edges = nfg.outgoing_edges().at(node.address);
         }
 
         if (ri.output.index() == kOffset) {
