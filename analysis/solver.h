@@ -137,8 +137,7 @@ bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
 template <class T>
 bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
                    std::map<Edge, T>& edge_states, size_t step_limit = 0x1000) {
-  return SolveFunction<T>(rfg, ip, edge_states, T::Merge, step_limit,
-                          basic_block_limit);
+  return SolveFunction<T>(rfg, ip, edge_states, T::Merge, step_limit);
 }
 
 template <class T>
@@ -146,8 +145,7 @@ bool SolveFunction(FlowGraph& rfg, const MemoryImage& memory_image,
                    std::map<Edge, T>& edge_states, size_t step_limit = 0x1000) {
   std::unique_ptr<InstructionProvider> ip =
       InstructionProvider::Create(memory_image);
-  return SolveFunction<T>(rfg, *ip, edge_states, T::Merge, step_limit,
-                          basic_block_limit);
+  return SolveFunction<T>(rfg, *ip, edge_states, T::Merge, step_limit);
 }
 }  // namespace analysis
 }  // namespace reil
