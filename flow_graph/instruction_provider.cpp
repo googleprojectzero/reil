@@ -43,7 +43,8 @@ std::shared_ptr<reil::NativeInstruction> InstructionProvider::NativeInstruction(
   if (!ni) {
     if (memory_image_.executable(address)) {
       absl::Span<const uint8_t> bytes = memory_image_.Read(address);
-      ni = std::make_shared<reil::NativeInstruction>(NativeInstruction(address, bytes));
+      ni = std::make_shared<reil::NativeInstruction>(
+          NativeInstruction(address, bytes));
       cache_[address] = ni;
       cache__[cache__index_++ % cache__.size()] = ni;
     }
@@ -68,7 +69,7 @@ reil::Instruction InstructionProvider::Instruction(const Node& node) {
 }
 
 InstructionProvider::InstructionProvider(const MemoryImage& memory_image,
-                                   enum TranslationFlags flags)
+                                         enum TranslationFlags flags)
     : memory_image_(memory_image), flags_(flags) {}
 
 InstructionProvider::~InstructionProvider() {}
@@ -77,12 +78,12 @@ class AArch64InstructionProvider : public InstructionProvider {
  protected:
   uint64_t NextNativeInstruction(uint64_t address,
                                  absl::Span<const uint8_t> bytes) override;
-  reil::NativeInstruction NativeInstruction(uint64_t address,
-                                      absl::Span<const uint8_t> bytes) override;
+  reil::NativeInstruction NativeInstruction(
+      uint64_t address, absl::Span<const uint8_t> bytes) override;
 
  public:
   AArch64InstructionProvider(const MemoryImage& memory_image,
-                          enum TranslationFlags flags)
+                             enum TranslationFlags flags)
       : InstructionProvider(memory_image, flags) {}
 };
 

@@ -187,6 +187,14 @@ void DataflowState<Operations, Ts...>::TransformJcc(const Edge& edge,
                                                     const Instruction& ri) {
   ValueType condition = GetOperand(ri.input0);
   if (edge.kind == EdgeKind::kFlow || edge.kind == EdgeKind::kNativeFlow) {
+    if (ri.input1.index() == kImmediate) {
+      if (absl::get<Immediate>(ri.input1) == kCall) {
+        // call flow edges are unconditionally not taken, but for the purposes
+        // of analysis they are actually always taken. This is a bit messy, and
+        // maybe I should address this differently in the FlowGraph.
+        return;
+      }
+    }
     ConstrainZero(condition);
   } else {
     ConstrainNonZero(condition);

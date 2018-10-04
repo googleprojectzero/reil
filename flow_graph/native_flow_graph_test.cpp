@@ -39,7 +39,7 @@ TEST(NativeFlowGraph, IncompleteBasicBlock) {
   EXPECT_EQ(nfg.BasicBlockEnd(0x1008), 0);
 }
 }  // namespace test
-}  // namespace disassembler
+}  // namespace flow_graph
 }  // namespace reil
 
 int main(int argc, char** argv) {

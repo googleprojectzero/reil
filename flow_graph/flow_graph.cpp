@@ -86,11 +86,10 @@ const std::set<Edge>& FlowGraph::incoming_edges(const Node& node) const {
   return no_edges;
 }
 
-std::unique_ptr<FlowGraph> FlowGraph::Create(
-    const MemoryImage& memory_image, InstructionProvider& ip,
-    const NativeFlowGraph& nfg,
-    uint64_t basic_block_limit) {
-
+std::unique_ptr<FlowGraph> FlowGraph::Create(const MemoryImage& memory_image,
+                                             InstructionProvider& ip,
+                                             const NativeFlowGraph& nfg,
+                                             uint64_t basic_block_limit) {
   std::unique_ptr<FlowGraph> rfg = absl::make_unique<FlowGraph>();
   std::shared_ptr<NativeInstruction> ni = nullptr;
 
@@ -101,7 +100,7 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(
 
     // filter out calls to other functions.
 
-    // NB: this shouldn't affect recursion, since we should have other edges 
+    // NB: this shouldn't affect recursion, since we should have other edges
     // that reach any basic blocks that we can also tail-call.
 
     bool call_target = true;
@@ -120,24 +119,21 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(
       continue;
     }
 
-    // establish bounds for the current reil basic block
+    Node bb_start = nfg.BasicBlockStart(in_iter.first);
+    Node bb_end = ip.NextNativeInstruction(nfg.BasicBlockEnd(out_iter->first));
 
-    auto out_iter = nfg.outgoing_edges().lower_bound(in_iter.first);
-    if (out_iter == nfg.outgoing_edges().end()
-        || out_iter->first - in_iter.first > basic_block_limit) {
-      // this basic block isn't contained in this function.
+    if (bb_end.address - bb_start.address > basic_block_limit) {
+      LOG(WARNING) << "basic_block_too_large: " << bb_start << " " << bb_end;
       continue;
     }
-
-    Node bb_start = in_iter.first;
-    Node bb_end = ip.NextNativeInstruction(out_iter->first);
 
     VLOG(1) << "basic_block " << bb_start << " - " << bb_end;
 
     Node next_node = 0;
-    for (Node node = bb_start; node <= bb_end; node = next_node) {
+    for (Node node = bb_start; node < bb_end; node = next_node) {
       if (!ni || ni->address != node.address) {
         ni = ip.NativeInstruction(node.address);
+        VLOG(3) << *ni;
       }
 
       if ((uint64_t)node.offset + 1 < ni->reil.size()) {
@@ -148,13 +144,16 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(
       }
 
       auto ri = ni->reil[node.offset];
+      VLOG(4) << "  " << ri;
       if (ri.opcode == reil::Opcode::Jcc) {
-        if (nfg.outgoing_edges().count(node.address) == 0) {
-          continue;
-        }
-
-        std::set<NativeEdge> edges = nfg.outgoing_edges().at(node.address);
+        std::set<NativeEdge> edges;
         bool flow = true;
+
+        // NB: BinExport2 NativeFlowGraphs may have missing edges on call
+        // instructions where target could not be resolved.
+        if (nfg.outgoing_edges().count(node.address)) {
+          edges = nfg.outgoing_edges().at(node.address)
+        }
 
         if (ri.output.index() == kOffset) {
           if (ri.input0.index() == kImmediate &&
@@ -197,7 +196,7 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(
               if (edge.kind == NativeEdgeKind::kReturn) {
                 rfg->AddEdge(node, edge.target, EdgeKind::kNativeReturn);
               } else {
-                DCHECK(false) << *ni << " " << edge;
+                DCHECK(false);
               }
             }
           }
@@ -206,6 +205,8 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(
         if (flow) {
           if (node.address != next_node.address) {
             rfg->AddEdge(node, next_node, EdgeKind::kNativeFlow);
+          } else {
+            rfg->AddEdge(node, next_node, EdgeKind::kFlow);
           }
         }
       } else {

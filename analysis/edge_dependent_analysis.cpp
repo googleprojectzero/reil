@@ -92,8 +92,7 @@ void EdgeDependentAnalysis::TransformIte(const Edge& edge,
 
 void EdgeDependentAnalysis::OnNativeInstructionEnd() {}
 
-EdgeDependentAnalysis::~EdgeDependentAnalysis() {
-}
+EdgeDependentAnalysis::~EdgeDependentAnalysis() {}
 
 bool EdgeDependentAnalysis::Valid() const { return valid_; }
 

@@ -36,11 +36,14 @@ class InstructionProvider {
  protected:
   enum TranslationFlags flags_;
 
-  virtual reil::NativeInstruction NativeInstruction(uint64_t address, absl::Span<const uint8_t> bytes) = 0;
-  virtual uint64_t NextNativeInstruction(uint64_t address, absl::Span<const uint8_t> bytes) = 0;
+  virtual reil::NativeInstruction NativeInstruction(
+      uint64_t address, absl::Span<const uint8_t> bytes) = 0;
+  virtual uint64_t NextNativeInstruction(uint64_t address,
+                                         absl::Span<const uint8_t> bytes) = 0;
 
-  InstructionProvider(const MemoryImage& memory_image, enum TranslationFlags flags);
-  
+  InstructionProvider(const MemoryImage& memory_image,
+                      enum TranslationFlags flags);
+
  public:
   InstructionProvider(const InstructionProvider&) = delete;
   InstructionProvider(InstructionProvider&&) = delete;
@@ -54,7 +57,8 @@ class InstructionProvider {
   reil::Instruction Instruction(const Node& address);
 
   static std::unique_ptr<InstructionProvider> Create(
-      const MemoryImage& memory_image, enum TranslationFlags flags=kDefaultFlags);
+      const MemoryImage& memory_image,
+      enum TranslationFlags flags = kDefaultFlags);
 };
 }  // namespace reil
 

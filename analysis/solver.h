@@ -32,8 +32,7 @@ template <class T>
 bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
                    std::map<Edge, T>& edge_states,
                    std::function<T(absl::Span<const T*>)> MergeStates,
-                   size_t step_limit = 0x1000,
-                   size_t basic_block_limit = 0x1000) {
+                   size_t step_limit = 0x1000) {
   std::set<Node> queue;
   for (auto& in_edge_iter : rfg.incoming_edges()) {
     for (auto& in_edge : in_edge_iter.second) {
@@ -64,8 +63,11 @@ bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
 
     auto out_edge_iter = rfg.outgoing_edges().lower_bound(node);
     if (out_edge_iter == rfg.outgoing_edges().end() ||
-        out_edge_iter->first.address - node.address > basic_block_limit) {
-      // this basic block is either absurd, or not contained in this graph.
+        out_edge_iter->first.address != node.address) {
+      // flowgraph consists of reil basic blocks, so if we haven't found a
+      // return edge within this native instruction, we have a broken flowgraph.
+      LOG(WARNING) << "invalid_basic_block: " << node << " "
+                   << out_edge_iter->first;
       continue;
     }
 
@@ -95,6 +97,7 @@ bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
     }
 
     if (!in_state.Valid()) {
+      VLOG(1) << "invalid_in_state";
       continue;
     }
 
@@ -102,9 +105,8 @@ bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
     for (auto& out_edge : out_edge_iter->second) {
       auto out_state = in_state;
       out_state.Transform(out_edge, ri);
-      std::cerr << out_edge << " " << out_state << std::endl;
       if (!out_state.Valid()) {
-        std::cerr << out_edge << " invalid" << std::endl;
+        VLOG(1) << "invalid_out_state";
         continue;
       }
 
@@ -134,16 +136,14 @@ bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
 
 template <class T>
 bool SolveFunction(FlowGraph& rfg, InstructionProvider& ip,
-                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000,
-                   size_t basic_block_limit = 0x1000) {
+                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000) {
   return SolveFunction<T>(rfg, ip, edge_states, T::Merge, step_limit,
                           basic_block_limit);
 }
 
 template <class T>
 bool SolveFunction(FlowGraph& rfg, const MemoryImage& memory_image,
-                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000,
-                   size_t basic_block_limit = 0x1000) {
+                   std::map<Edge, T>& edge_states, size_t step_limit = 0x1000) {
   std::unique_ptr<InstructionProvider> ip =
       InstructionProvider::Create(memory_image);
   return SolveFunction<T>(rfg, *ip, edge_states, T::Merge, step_limit,

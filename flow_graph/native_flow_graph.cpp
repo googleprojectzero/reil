@@ -63,8 +63,8 @@ void NativeFlowGraph::RemoveEdge(uint64_t source, uint64_t target,
 
 bool NativeFlowGraph::resolved() const {
   auto zero_edge_iter = incoming_edges_.find(0);
-  if (zero_edge_iter == incoming_edges_.end()
-      || zero_edge_iter->second.empty()) {
+  if (zero_edge_iter == incoming_edges_.end() ||
+      zero_edge_iter->second.empty()) {
     return true;
   }
 
@@ -101,16 +101,15 @@ uint64_t NativeFlowGraph::BasicBlockStart(uint64_t node) const {
   uint64_t next_bb_start = 0xffffffffffffffffull;
 
   for (auto in_edge_riter = incoming_edges_.rbegin();
-       in_edge_riter != incoming_edges_.rend();
-       ++in_edge_riter) {
+       in_edge_riter != incoming_edges_.rend(); ++in_edge_riter) {
     // check that this incoming edge is at or before node
     if (in_edge_riter->first <= node) {
       auto out_edge_iter = outgoing_edges_.lower_bound(in_edge_riter->first);
       // if there is no outgoing edge after the incoming edge, or the outgoing
-      // edge is after the start of the next basic block then this is an 
+      // edge is after the start of the next basic block then this is an
       // incomplete basic block
-      if (out_edge_iter == outgoing_edges_.end()
-          || next_bb_start <= out_edge_iter->first) {
+      if (out_edge_iter == outgoing_edges_.end() ||
+          next_bb_start <= out_edge_iter->first) {
         break;
       }
 
@@ -135,16 +134,15 @@ uint64_t NativeFlowGraph::BasicBlockEnd(uint64_t node) const {
   uint64_t next_bb_start = 0xffffffffffffffffull;
 
   for (auto in_edge_riter = incoming_edges_.rbegin();
-       in_edge_riter != incoming_edges_.rend();
-       ++in_edge_riter) {
+       in_edge_riter != incoming_edges_.rend(); ++in_edge_riter) {
     // check that this incoming edge is at or before node
     if (in_edge_riter->first <= node) {
       auto out_edge_iter = outgoing_edges_.lower_bound(in_edge_riter->first);
       // if there is no outgoing edge after the incoming edge, or the outgoing
-      // edge is after the start of the next basic block then this is an 
+      // edge is after the start of the next basic block then this is an
       // incomplete basic block
-      if (out_edge_iter == outgoing_edges_.end()
-          || next_bb_start <= out_edge_iter->first) {
+      if (out_edge_iter == outgoing_edges_.end() ||
+          next_bb_start <= out_edge_iter->first) {
         break;
       }
 
@@ -223,7 +221,12 @@ NativeFlowGraph::LoadBinexport2(const BinExport2& bx2) {
   std::map<uint64_t, std::unique_ptr<NativeFlowGraph>> result;
   std::map<int, uint64_t> insn_address;
   std::map<int, uint8_t> insn_size;
+  std::map<uint64_t, std::set<uint64_t>> call_edges;
   uint64_t next_address = 0;
+
+  // TODO: This is sadly architecture specific. Need to check up on the details
+  // of what BinExport2 mandates for eg. basic block end addresses, use of
+  // different edge types etc.
 
   for (int i = 0; i < bx2.instruction_size(); ++i) {
     uint64_t address = bx2.instruction(i).address();
@@ -232,6 +235,17 @@ NativeFlowGraph::LoadBinexport2(const BinExport2& bx2) {
       address = next_address;
     }
     next_address = address + size;
+
+    // BinExport2 stores call edges in the Instruction objects instead of the
+    // CallGraph or FlowGraph.
+    if (bx2.instruction(i).call_target_size()) {
+      std::set<uint64_t> insn_calls;
+      for (int j = 0; j < bx2.instruction(i).call_target_size(); ++j) {
+        insn_calls.insert(bx2.instruction(i).call_target(j));
+      }
+      call_edges.emplace(address, std::move(insn_calls));
+    }
+
     insn_address[i] = address;
     insn_size[i] = size;
   }
@@ -243,32 +257,64 @@ NativeFlowGraph::LoadBinexport2(const BinExport2& bx2) {
     int begin_index = bx2.basic_block(i).instruction_index(0).begin_index();
     int end_index = bx2.basic_block(i).instruction_index(0).end_index();
     bb_start[i] = insn_address[begin_index];
-    bb_end[i] = insn_address[end_index];
+    bb_end[i] = insn_address[end_index] - 4;
   }
-
-  // TODO: Add call edges to the resulting cfgs (from binexport callgraph)
 
   for (int i = 0; i < bx2.flow_graph_size(); ++i) {
     const BinExport2::FlowGraph& bx2_fg = bx2.flow_graph(i);
-    std::unique_ptr<NativeFlowGraph> nfg =
-        absl::make_unique<NativeFlowGraph>();
 
+    if (bb_start[bx2_fg.entry_basic_block_index()] != 0x004A9CA8) {
+      continue;
+    }
+
+    std::unique_ptr<NativeFlowGraph> nfg = absl::make_unique<NativeFlowGraph>();
+
+    // add the entry edge.
     nfg->AddEdge(0, bb_start[bx2_fg.entry_basic_block_index()],
                  NativeEdgeKind::kCall);
+
+    // add the flow edges from the BinExport2 FlowGraph.
     for (int j = 0; j < bx2_fg.edge_size(); ++j) {
       int src_index = bx2_fg.edge(j).source_basic_block_index();
       int tgt_index = bx2_fg.edge(j).target_basic_block_index();
-      nfg->AddEdge(bb_end[src_index], bb_start[tgt_index],
-                   NativeEdgeKind::kJump);
+      if (bx2_fg.edge(j).type() ==
+          BinExport2_FlowGraph_Edge_Type_CONDITION_FALSE) {
+        nfg->AddEdge(bb_end[src_index], bb_start[tgt_index],
+                     NativeEdgeKind::kFlow);
+      } else {
+        nfg->AddEdge(bb_end[src_index], bb_start[tgt_index],
+                     NativeEdgeKind::kJump);
+      }
     }
 
-    // TODO: this is probably not ideal, but can't think of a better solution
-    // for right now. we expect to have a return edge to 0 at all function
-    // return edges, but binexport doesn't contain return edges at all.
+    // add the call edges from the BinExport2 Instructions.
+    for (int j = 0; j < bx2_fg.basic_block_index_size(); ++j) {
+      int index = bx2_fg.basic_block_index(j);
+      for (auto call_edge_iter = call_edges.lower_bound(bb_start[index]);
+           call_edge_iter != call_edges.end() &&
+           call_edge_iter != call_edges.upper_bound(bb_end[index]);
+           ++call_edge_iter) {
+        nfg->AddEdge(call_edge_iter->first, call_edge_iter->first + 4,
+                     NativeEdgeKind::kFlow);
+        for (auto call_target : call_edge_iter->second) {
+          nfg->AddEdge(call_edge_iter->first, call_target,
+                       NativeEdgeKind::kCall);
+        }
+      }
+    }
+
+    // add return edges to any basic blocks that don't have any outgoing edges.
+
+    // TODO: this is not perfect, we don't handle noreturn functions in a way
+    // that matches the REIL disassembler.
+
+    // TODO: not sure why we need the -4 here, but it seems maybe the BinExport2
+    // basic block ends for returns are not consistent with calls/jumps?
+
     for (int j = 0; j < bx2_fg.basic_block_index_size(); ++j) {
       int index = bx2_fg.basic_block_index(j);
       if (nfg->outgoing_edges(bb_end[index]).empty()) {
-        nfg->AddEdge(bb_end[index], 0, NativeEdgeKind::kReturn);
+        nfg->AddEdge(bb_end[index] - 4, 0, NativeEdgeKind::kReturn);
       }
     }
 
