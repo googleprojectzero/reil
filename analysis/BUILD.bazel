@@ -22,32 +22,35 @@ package(
 )
 
 cc_library(
-    name = "analysis",
+    name = "constants_analysis",
     hdrs = [
-        "edge_dependent_analysis.h",
-        "edge_independent_analysis.h",
-        "dataflow.h",
-        "map_storage.h",
-        "register_state.h",
-        "solver.h",
-        "temporary_state.h",
-        "value/immediate.h",
-        "value/operations.h",
-        "value/top.h",
+        "constants_analysis.h",
+        "session.h",
     ],
     srcs = [
-        "edge_dependent_analysis.cpp",
-        "edge_independent_analysis.cpp",
-        "value/immediate.cpp",
-        "value/top.cpp",
+        "constants_analysis.cpp",
     ],
     deps = [
         "//flow_graph",
         "//memory_image",
         "//reil",
-        "@com_google_abseil//absl/meta:type_traits",
-        "@com_google_abseil//absl/types:span",
+        "@com_google_abseil//absl/memory",
     ],
+)
+
+cc_test(
+    name = "constants_analysis_test",
+    srcs = [
+        "constants_analysis_test.cpp",
+    ],
+    data = [
+        ":test_data",
+    ],
+    deps = [
+        ":constants_analysis",
+        "@com_google_googletest//:gtest",
+    ],
+    size = "small",
 )
 
 filegroup(
@@ -56,19 +59,4 @@ filegroup(
         "test_data/*.mem",
         "test_data/*.cfg",
     ]),
-)
-
-cc_test(
-    name = "dataflow_test",
-    srcs = [
-        "dataflow_test.cpp",
-    ],
-    data = [
-        ":test_data",
-    ],
-    deps = [
-        ":analysis",
-        "@com_google_googletest//:gtest",
-    ],
-    size = "small",
 )

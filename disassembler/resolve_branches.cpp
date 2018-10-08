@@ -17,8 +17,7 @@
 
 #include "glog/logging.h"
 
-#include "analysis/dataflow.h"
-#include "analysis/solver.h"
+#include "analysis/constants_analysis.h"
 #include "disassembler/disassembler.h"
 #include "flow_graph/flow_graph.h"
 
@@ -30,44 +29,45 @@ bool ResolveBranches(const MemoryImage& memory_image, InstructionProvider& ip,
   bool jump_added = false;
 
   do {
-    std::unique_ptr<FlowGraph> rfg = FlowGraph::Create(memory_image, ip, nfg);
+    reil::analysis::Session session(memory_image);
+    session.AddFlowGraph(FlowGraph::Create(memory_image, ip, nfg));
 
-    std::map<Edge, reil::analysis::DataflowState<>> edge_states;
-    for (auto edge : rfg->outgoing_edges(0)) {
-      VLOG(1) << edge;
-      edge_states.emplace(
-          std::make_pair(edge, reil::analysis::DataflowState<>(memory_image)));
-    }
+    auto flow_graph = session.flow_graph(nfg.Entry());
 
-    if (reil::analysis::SolveFunction<reil::analysis::DataflowState<>>(
-            *rfg, ip, edge_states)) {
+    auto constants = reil::analysis::LocalConstantsAnalysis(
+        session, flow_graph->Entry().address);
+
+    if (constants) {
       resolved = true;
       jump_added = false;
 
-      for (auto edge : rfg->incoming_edges(0)) {
-        auto state_iter = edge_states.find(edge);
-        if (state_iter != edge_states.end()) {
-          auto ri = ip.Instruction(edge.source);
-          auto value = state_iter->second.GetOperand(ri.output);
-          if (absl::holds_alternative<Immediate>(value)) {
-            uint64_t address = (uint64_t)absl::get<Immediate>(value);
-            VLOG(1) << "resolved " << *ip.NativeInstruction(edge.source.address)
-                    << " [" << std::hex << address << "]";
-            if (edge.kind == EdgeKind::kNativeJump) {
-              nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kJump);
-              nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kJump);
-              Disassemble(memory_image, nfg, address);
-              jump_added = true;
-            } else if (edge.kind == EdgeKind::kNativeCall) {
-              nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kCall);
-              nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kCall);
-            } else {
-              LOG(WARNING) << "Unexpected edge resolved: " << edge << " "
-                           << address;
-            }
+      for (auto edge : flow_graph->incoming_edges(0)) {
+        auto state = constants->On(edge);
+        if (!state) {
+          VLOG(1) << "no state :-(";
+          continue;
+        }
+
+        auto ri = ip.Instruction(edge.source);
+        auto value = state->GetOperand(ri.output);
+        if (value) {
+          uint64_t address = static_cast<uint64_t>(*value);
+          VLOG(1) << "resolved " << *ip.NativeInstruction(edge.source.address)
+                  << " [" << std::hex << address << "]";
+          if (edge.kind == EdgeKind::kNativeJump) {
+            nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kJump);
+            nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kJump);
+            Disassemble(memory_image, nfg, address);
+            jump_added = true;
+          } else if (edge.kind == EdgeKind::kNativeCall) {
+            nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kCall);
+            nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kCall);
           } else {
-            resolved = false;
+            LOG(WARNING) << "Unexpected edge resolved: " << edge << " "
+                         << address;
           }
+        } else {
+          resolved = false;
         }
       }
     } else {

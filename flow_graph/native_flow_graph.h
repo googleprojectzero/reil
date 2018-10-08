@@ -47,6 +47,7 @@ class NativeFlowGraph {
   const std::set<NativeEdge>& outgoing_edges(uint64_t node) const;
   const std::set<NativeEdge>& incoming_edges(uint64_t node) const;
 
+  uint64_t Entry() const;
   uint64_t BasicBlockStart(uint64_t node) const;
   uint64_t BasicBlockEnd(uint64_t node) const;
 

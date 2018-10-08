@@ -51,6 +51,11 @@ class FlowGraph {
   const std::set<Edge>& outgoing_edges(const Node& node) const;
   const std::set<Edge>& incoming_edges(const Node& node) const;
 
+  Node Entry() const;
+
+  Node BasicBlockStart(const Node& node) const;
+  Node BasicBlockEnd(const Node& node) const;
+
   static std::unique_ptr<FlowGraph> Create(const MemoryImage& memory_image,
                                            InstructionProvider& ip,
                                            const NativeFlowGraph& nfg,

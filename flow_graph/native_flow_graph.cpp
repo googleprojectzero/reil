@@ -96,6 +96,13 @@ const std::set<NativeEdge>& NativeFlowGraph::incoming_edges(
   return no_edges;
 }
 
+uint64_t NativeFlowGraph::Entry() const {
+  auto zero_edge_iter = outgoing_edges_.find(0);
+  CHECK(zero_edge_iter != outgoing_edges_.end());
+  CHECK(zero_edge_iter->second.size() == 1);
+  return zero_edge_iter->second.begin()->target;
+}
+
 uint64_t NativeFlowGraph::BasicBlockStart(uint64_t node) const {
   uint64_t bb_start = 0;
   uint64_t next_bb_start = 0xffffffffffffffffull;

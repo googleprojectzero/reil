@@ -38,7 +38,7 @@ cc_library(
         "//flow_graph:flow_graph",
         "//flow_graph:native_flow_graph",
         "//memory_image:memory_image",
-        "//analysis",
+        "//analysis:constants_analysis",
         "//reil:reil",
         "@com_google_glog//:glog",
     ],

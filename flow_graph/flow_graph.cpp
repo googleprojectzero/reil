@@ -86,6 +86,79 @@ const std::set<Edge>& FlowGraph::incoming_edges(const Node& node) const {
   return no_edges;
 }
 
+Node FlowGraph::Entry() const {
+  auto zero_edge_iter = outgoing_edges_.find(0);
+  CHECK(zero_edge_iter != outgoing_edges_.end());
+  CHECK(zero_edge_iter->second.size() == 1);
+  return zero_edge_iter->second.begin()->target;
+}
+
+Node FlowGraph::BasicBlockStart(const Node& node) const {
+  Node bb_start = 0;
+  Node next_bb_start(0xffffffffffffffffull, 0xfffe);
+
+  for (auto in_edge_riter = incoming_edges_.rbegin();
+       in_edge_riter != incoming_edges_.rend(); ++in_edge_riter) {
+    // check that this incoming edge is at or before node
+    if (in_edge_riter->first <= node) {
+      auto out_edge_iter = outgoing_edges_.lower_bound(in_edge_riter->first);
+      // if there is no outgoing edge after the incoming edge, or the outgoing
+      // edge is after the start of the next basic block then this is an
+      // incomplete basic block
+      if (out_edge_iter == outgoing_edges_.end() ||
+          next_bb_start <= out_edge_iter->first) {
+        break;
+      }
+
+      // if the next outgoing edge is before node, then there is no basic block
+      // containing node
+      if (out_edge_iter->first < node) {
+        break;
+      }
+
+      bb_start = in_edge_riter->first;
+      break;
+    }
+
+    next_bb_start = in_edge_riter->first;
+  }
+
+  return bb_start;
+}
+
+Node FlowGraph::BasicBlockEnd(const Node& node) const {
+  Node bb_end = 0;
+  Node next_bb_start(0xffffffffffffffffull, 0xfffe);
+
+  for (auto in_edge_riter = incoming_edges_.rbegin();
+       in_edge_riter != incoming_edges_.rend(); ++in_edge_riter) {
+    // check that this incoming edge is at or before node
+    if (in_edge_riter->first <= node) {
+      auto out_edge_iter = outgoing_edges_.lower_bound(in_edge_riter->first);
+      // if there is no outgoing edge after the incoming edge, or the outgoing
+      // edge is after the start of the next basic block then this is an
+      // incomplete basic block
+      if (out_edge_iter == outgoing_edges_.end() ||
+          next_bb_start <= out_edge_iter->first) {
+        break;
+      }
+
+      // if the next outgoing edge is before node, then there is no basic block
+      // containing node
+      if (out_edge_iter->first < node) {
+        break;
+      }
+
+      bb_end = out_edge_iter->first;
+      break;
+    }
+
+    next_bb_start = in_edge_riter->first;
+  }
+
+  return bb_end;
+}
+
 std::unique_ptr<FlowGraph> FlowGraph::Create(const MemoryImage& memory_image,
                                              InstructionProvider& ip,
                                              const NativeFlowGraph& nfg,

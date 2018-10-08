@@ -16,15 +16,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "absl/memory/memory.h"
-#include "absl/types/span.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
 
-#include "analysis/dataflow.h"
-#include "analysis/solver.h"
+#include "analysis/constants_analysis.h"
+#include "analysis/session.h"
 #include "flow_graph/flow_graph.h"
 #include "memory_image/memory_image.h"
+#include "reil/aarch64.h"
 
 namespace reil {
 namespace analysis {
@@ -38,26 +37,28 @@ namespace test {
   400088:       91115801        add     x1, x0, #0x456
   40008c:       d65f03c0        ret
 */
-TEST(Solver, LiteralArithmetic) {
+TEST(ConstantsAnalysis, LiteralArithmetic) {
   auto memory_image =
       MemoryImage::Load("analysis/test_data/literal_arithmetic.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto rfg = FlowGraph::Load(*memory_image,
-                             "analysis/test_data/literal_arithmetic.cfg");
-  ASSERT_NE(rfg, nullptr);
+  Session session(*memory_image);
+  session.AddFlowGraph(FlowGraph::Load(
+      *memory_image, "analysis/test_data/literal_arithmetic.cfg"));
 
-  std::map<Edge, DataflowState<>> edge_states;
-  edge_states.emplace(std::make_pair(Edge(0, 0x400078, EdgeKind::kNativeCall),
-                                     DataflowState<>(*memory_image)));
-  ASSERT_EQ(SolveFunction<DataflowState<>>(*rfg, *memory_image, edge_states),
-            true);
+  auto constants = LocalConstantsAnalysis(session, 0x400078);
+  ASSERT_NE(constants, nullptr);
 
-  auto end_state = edge_states.at(Edge(0x40008c, 0, EdgeKind::kNativeReturn));
-  ASSERT_EQ(end_state.GetRegister("x0"),
-            DataflowState<>::ValueType(Immediate(64, 0x123)));
-  ASSERT_EQ(end_state.GetRegister("x1"),
-            DataflowState<>::ValueType(Immediate(64, 0x579)));
+  auto at_return = constants->At(0x40008c);
+  ASSERT_NE(at_return, nullptr);
+
+  auto x0 = at_return->GetRegister(reil::aarch64::kX0);
+  ASSERT_NE(x0, nullptr);
+  EXPECT_EQ(static_cast<uint64_t>(*x0), 0x123);
+
+  auto x1 = at_return->GetRegister(reil::aarch64::kX1);
+  ASSERT_NE(x1, nullptr);
+  EXPECT_EQ(static_cast<uint64_t>(*x1), 0x579);
 }
 
 /*
@@ -74,38 +75,25 @@ TEST(Solver, LiteralArithmetic) {
   400094:       910083ff        add     sp, sp, #0x20
   400098:       d65f03c0        ret
 */
-TEST(Solver, Loop) {
+TEST(ConstantsAnalysis, Loop) {
   auto memory_image = MemoryImage::Load("analysis/test_data/loop.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto rfg = FlowGraph::Load(*memory_image, "analysis/test_data/loop.cfg");
-  ASSERT_NE(rfg, nullptr);
+  Session session(*memory_image);
+  session.AddFlowGraph(
+      FlowGraph::Load(*memory_image, "analysis/test_data/loop.cfg"));
 
-  std::cerr << std::endl << "in" << std::endl;
-  for (auto edge_iter : rfg->incoming_edges()) {
-    for (auto edge : edge_iter.second) {
-      std::cerr << edge << std::endl;
-    }
-  }
+  auto constants = LocalConstantsAnalysis(session, 0x400078);
+  ASSERT_NE(constants, nullptr);
 
-  std::cerr << std::endl << "out" << std::endl;
-  for (auto edge_iter : rfg->outgoing_edges()) {
-    for (auto edge : edge_iter.second) {
-      std::cerr << edge << std::endl;
-    }
-  }
-
-  std::map<Edge, DataflowState<>> edge_states;
-  edge_states.emplace(std::make_pair(Edge(0, 0x400078, EdgeKind::kNativeCall),
-                                     DataflowState<>(*memory_image)));
-  ASSERT_EQ(SolveFunction<DataflowState<>>(*rfg, *memory_image, edge_states),
-            true);
+  auto at_return = constants->At(0x400098);
+  ASSERT_NE(at_return, nullptr);
 
   // This test just validates that the solver correctly merges multiple x0
   // values to Top and is able to terminate the analysis.
 
-  auto end_state = edge_states.at(Edge(0x400098, 0, EdgeKind::kNativeReturn));
-  ASSERT_EQ(end_state.GetRegister("x0"), DataflowState<>::ValueType(Top()));
+  auto x0 = at_return->GetRegister(reil::aarch64::kX0);
+  ASSERT_EQ(x0, nullptr);
 }
 
 /*
@@ -122,21 +110,22 @@ TEST(Solver, AsrBug) {
   auto memory_image = MemoryImage::Load("analysis/test_data/asr_bug.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto rfg = FlowGraph::Load(*memory_image, "analysis/test_data/asr_bug.cfg");
-  ASSERT_NE(rfg, nullptr);
+  Session session(*memory_image);
+  session.AddFlowGraph(
+      FlowGraph::Load(*memory_image, "analysis/test_data/asr_bug.cfg"));
 
-  std::map<Edge, DataflowState<>> edge_states;
-  edge_states.emplace(std::make_pair(Edge(0, 0x400078, EdgeKind::kNativeCall),
-                                     DataflowState<>(*memory_image)));
-  ASSERT_EQ(SolveFunction<DataflowState<>>(*rfg, *memory_image, edge_states),
-            true);
+  auto constants = LocalConstantsAnalysis(session, 0x400078);
+  ASSERT_NE(constants, nullptr);
+
+  auto at_return = constants->At(0x400090);
+  ASSERT_NE(at_return, nullptr);
 
   // This test just validates the asr instruction is handled correctly, since
   // it is one of the more complex translations containing internal branches.
 
-  auto end_state = edge_states.at(Edge(0x400090, 0, EdgeKind::kNativeReturn));
-  ASSERT_EQ(end_state.GetRegister("x0"),
-            DataflowState<>::ValueType(Immediate(64, 0x80024)));
+  auto x0 = at_return->GetRegister(reil::aarch64::kX0);
+  ASSERT_NE(x0, nullptr);
+  EXPECT_EQ(static_cast<uint64_t>(*x0), 0x80024);
 }
 
 /*
@@ -157,23 +146,23 @@ TEST(Solver, ControlFlowConstraint) {
       MemoryImage::Load("analysis/test_data/control_flow_constraint.mem");
   ASSERT_NE(memory_image, nullptr);
 
-  auto rfg = FlowGraph::Load(*memory_image,
-                             "analysis/test_data/control_flow_constraint.cfg");
-  ASSERT_NE(rfg, nullptr);
+  Session session(*memory_image);
+  session.AddFlowGraph(FlowGraph::Load(
+      *memory_image, "analysis/test_data/control_flow_constraint.cfg"));
 
-  std::map<Edge, DataflowState<>> edge_states;
-  edge_states.emplace(std::make_pair(Edge(0, 0x400078, EdgeKind::kNativeCall),
-                                     DataflowState<>(*memory_image)));
-  ASSERT_EQ(SolveFunction<DataflowState<>>(*rfg, *memory_image, edge_states),
-            true);
+  auto constants = LocalConstantsAnalysis(session, 0x400078);
+  ASSERT_NE(constants, nullptr);
+
+  auto at_return = constants->At(0x400094);
+  ASSERT_NE(at_return, nullptr);
 
   // This test validates that the solver didn't propagate the values from the
   // branch which cannot be taken. If the instruction at 400090 was taken into
   // account, the final x0 value would have to be Top.
 
-  auto end_state = edge_states.at(Edge(0x400094, 0, EdgeKind::kNativeReturn));
-  ASSERT_EQ(end_state.GetRegister("x0"),
-            DataflowState<>::ValueType(Immediate(64, 0)));
+  auto x0 = at_return->GetRegister(reil::aarch64::kX0);
+  ASSERT_NE(x0, nullptr);
+  EXPECT_EQ(static_cast<uint64_t>(*x0), 0);
 }
 }  // namespace test
 }  // namespace analysis
