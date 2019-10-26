@@ -237,7 +237,7 @@ std::unique_ptr<FlowGraph> FlowGraph::Create(const MemoryImage& memory_image,
           Offset offset = absl::get<Offset>(ri.output);
           rfg->AddEdge(
               Edge(node, Node(node.address, offset.offset), EdgeKind::kJump));
-          DCHECK(edges.size() == 1);
+          //DCHECK(edges.size() == 1);
         } else {
           // all non-local jcc instructions should have a hint.
           DCHECK(ri.input1.index() == kImmediate);

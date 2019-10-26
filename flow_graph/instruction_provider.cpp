@@ -64,6 +64,9 @@ Node InstructionProvider::NextInstruction(const Node& node) {
 
 reil::Instruction InstructionProvider::Instruction(const Node& node) {
   auto ni = NativeInstruction(node.address);
+  if (ni == nullptr) {
+    LOG(ERROR) << node;
+  }
   DCHECK(node.offset < ni->reil.size());
   return ni->reil[node.offset];
 }

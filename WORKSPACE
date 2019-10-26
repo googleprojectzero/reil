@@ -16,5 +16,16 @@ workspace(name = "reil")
 
 local_repository(name = 'reil_rules', path = '.')
 load("@reil_rules//:repositories.bzl", "reil_repositories")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+  name = "com_google_protobuf",
+  sha256 = "758249b537abba2f21ebc2d02555bf080917f0f2f88f4cbe2903e0e28c4187ed",
+  strip_prefix = "protobuf-3.10.0",
+  urls = ["https://github.com/google/protobuf/archive/v3.10.0.tar.gz"]
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
 
 reil_repositories()

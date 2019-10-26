@@ -54,7 +54,7 @@ bool MemoryImage::AccessOk(uint64_t address, uint64_t size, bool read,
   }
 
   if (found) {
-    return read == readable && write == writable && execute == executable;
+    return (read == readable) && (write == writable) && (execute == executable);
   }
 
   return false;

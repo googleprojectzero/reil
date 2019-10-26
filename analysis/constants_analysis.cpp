@@ -188,6 +188,7 @@ std::shared_ptr<Immediate> ConstantsStateImpl::GetOperandImpl(
     value = GetTemporaryImpl(absl::get<Temporary>(operand).index);
   } else if (operand.index() == kRegister) {
     value = GetRegisterImpl(absl::get<Register>(operand).index);
+  } else if (operand.index() == kOffset) {
   } else {
     CHECK(false);
   }
@@ -360,8 +361,8 @@ void ConstantsStateImpl::TransformLdm(const Instruction& ri,
   auto value = GetOperand(ri.input0);
   if (value) {
     uint64_t address = static_cast<uint64_t>(*value);
-    if (memory_image.readable(address, Size(ri.output)) &&
-        !memory_image.writable(address, Size(ri.output))) {
+    if (memory_image.readable(address, Size(ri.output) / 8) &&
+        memory_image.writable(address, Size(ri.output) / 8)) {
       SetOperand(ri.output, Immediate(memory_image.Read(address).data(),
                                       Size(ri.output) / 8));
     }
@@ -483,7 +484,6 @@ void ConstantsStateImpl::TransformAshr(const Instruction& ri) {
     } else {
       result >>= *rhs;
     }
-    std::cerr << result << std::endl;
     SetOperandImpl(ri.output, std::move(result));
   } else {
     SetOperandImpl(ri.output, nullptr);
@@ -868,11 +868,18 @@ void LocalConstantsAnalysisImpl::Update() {
     queue.erase(queue.begin());
 
     if (node == 0) {
+      VLOG(4) << "bailed1";
       continue;
     }
 
     // compute the input state to the node
     node = flow_graph->BasicBlockEnd(node);
+
+    if (node == 0) {
+      VLOG(4) << "bailed2";
+      continue;
+    }
+
     auto in_state = AtImpl(node);
 
     // for each out edge, transform the in state to the new out state.

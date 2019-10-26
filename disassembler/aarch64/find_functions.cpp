@@ -35,8 +35,8 @@ std::set<uint64_t> FindFunctions(const MemoryImage& memory_image) {
 
         memcpy(&opcode, &mapping.data[offset], sizeof(opcode));
 
-        VLOG(3) << std::hex << address << ": " << opcode << " "
-                << reil::aarch64::decoder::DecodeInstruction(address, opcode);
+        //VLOG(3) << std::hex << address << ": " << opcode << " "
+        //        << reil::aarch64::decoder::DecodeInstruction(address, opcode);
 
         if (!pacsp && (opcode & 0b11111111111111111111111110111111) ==
                           0b11010101000000110010001100111111) {

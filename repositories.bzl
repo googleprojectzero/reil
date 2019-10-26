@@ -17,6 +17,8 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def reil_repositories(
+  omit_bazel_skylib=False,
+  omit_rules_python=False,
   omit_com_google_abseil=False,
   omit_com_github_gflags_gflags=False,
   omit_com_google_binexport=False,
@@ -24,6 +26,10 @@ def reil_repositories(
   omit_com_google_googletest=False,
   omit_com_google_protobuf=False):
 
+  if not omit_bazel_skylib:
+    bazel_skylib()
+  if not omit_rules_python:
+    rules_python()
   if not omit_com_google_abseil:
     com_google_abseil()
   if not omit_com_github_gflags_gflags:
@@ -36,6 +42,22 @@ def reil_repositories(
     com_google_googletest()
   if not omit_com_google_protobuf:
     com_google_protobuf()
+
+def bazel_skylib():
+  http_archive(
+    name = "bazel_skylib",
+    sha256 = "839ee2a0ee5b728b7af73eac87b5e207ed2c8651b7bcf7c6142cdf4dd1ea738b",
+    strip_prefix = "bazel-skylib-e59b620b392a8ebbcf25879fc3fde52b4dc77535",
+    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/e59b620b392a8ebbcf25879fc3fde52b4dc77535.tar.gz"]
+  )
+
+def rules_python():
+  http_archive(
+    name = "rules_python",
+    sha256 = "e220053c4454664c09628ffbb33f245e65f5fe92eb285fbd0bc3a26f173f99d0",
+    strip_prefix = "rules_python-5aa465d5d91f1d9d90cac10624e3d2faf2057bd5",
+    urls = ["https://github.com/bazelbuild/rules_python/archive/5aa465d5d91f1d9d90cac10624e3d2faf2057bd5.tar.gz"]
+  )
 
 def com_google_abseil():
   http_archive(
@@ -81,7 +103,7 @@ def com_google_googletest():
 def com_google_protobuf():
   http_archive(
     name = "com_google_protobuf",
-    sha256 = "cef7f1b5a7c5fba672bec2a319246e8feba471f04dcebfe362d55930ee7c1c30",
-    strip_prefix = "protobuf-3.5.0",
-    urls = ["https://github.com/google/protobuf/archive/v3.5.0.zip"]
+    sha256 = "758249b537abba2f21ebc2d02555bf080917f0f2f88f4cbe2903e0e28c4187ed",
+    strip_prefix = "protobuf-3.10.0",
+    urls = ["https://github.com/google/protobuf/archive/v3.10.0.tar.gz"]
   )

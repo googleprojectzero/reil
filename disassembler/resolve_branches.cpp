@@ -52,33 +52,35 @@ bool ResolveBranches(const MemoryImage& memory_image, InstructionProvider& ip,
         auto value = state->GetOperand(ri.output);
         if (value) {
           uint64_t address = static_cast<uint64_t>(*value);
-          VLOG(1) << "resolved " << *ip.NativeInstruction(edge.source.address)
-                  << " [" << std::hex << address << "]";
-          if (edge.kind == EdgeKind::kNativeJump) {
-            nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kJump);
-            nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kJump);
-            Disassemble(memory_image, nfg, address);
-            jump_added = true;
-          } else if (edge.kind == EdgeKind::kNativeCall) {
-            nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kCall);
-            nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kCall);
-          } else {
-            LOG(WARNING) << "Unexpected edge resolved: " << edge << " "
-                         << address;
+          if (address) {
+            VLOG(0) << "resolved " << *ip.NativeInstruction(edge.source.address)
+                    << " [" << std::hex << address << "]";
+            if (edge.kind == EdgeKind::kNativeJump) {
+              jump_added = nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kJump);
+              nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kJump);
+              Disassemble(memory_image, nfg, address);
+            } else if (edge.kind == EdgeKind::kNativeCall) {
+              nfg.RemoveEdge(edge.source.address, 0, NativeEdgeKind::kCall);
+              nfg.AddEdge(edge.source.address, address, NativeEdgeKind::kCall);
+            } else {
+              LOG(WARNING) << "Unexpected edge resolved: " << edge << " "
+                           << *ip.NativeInstruction(edge.source.address);
+            }
+          } else if (edge.kind != EdgeKind::kNativeReturn) {
+            resolved = false;
           }
-        } else {
+        } else if (edge.kind != EdgeKind::kNativeReturn) {
           resolved = false;
         }
       }
     } else {
       break;
     }
+
+    VLOG(0) << jump_added << " " << nfg.resolved();
   } while (jump_added && !nfg.resolved());
 
-  if (jump_added) {
-    return true;
-  }
-
+  VLOG(0) << resolved;
   return resolved;
 }
 

@@ -93,8 +93,6 @@ int main(int argc, char** argv) {
   queue_lock.unlock();
 
   int resolved = 0;
-
-  std::cout << std::thread::hardware_concurrency() << std::endl;
   int thread_count = std::thread::hardware_concurrency() / 2;
 
   std::vector<std::thread> disassembler_threads;
@@ -114,6 +112,10 @@ int main(int argc, char** argv) {
       path_stream << argv[2] << "/" << std::hex << function_iter.first
                   << ".cfg";
       function_iter.second->Save(path_stream.str());
+    }
+  } else {
+    for (auto& function_iter : functions) {
+      resolved += function_iter.second->resolved();
     }
   }
   functions_lock.unlock();

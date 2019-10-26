@@ -31,8 +31,8 @@ class NativeFlowGraph {
   void AddEdge(const NativeEdge& edge);
   void AddEdge(uint64_t source, uint64_t target, NativeEdgeKind kind);
 
-  void RemoveEdge(const NativeEdge& edge);
-  void RemoveEdge(uint64_t source, uint64_t target, NativeEdgeKind kind);
+  bool RemoveEdge(const NativeEdge& edge);
+  bool RemoveEdge(uint64_t source, uint64_t target, NativeEdgeKind kind);
 
   bool resolved() const;
 

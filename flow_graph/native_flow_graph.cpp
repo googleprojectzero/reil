@@ -37,11 +37,12 @@ void NativeFlowGraph::AddEdge(uint64_t source, uint64_t target,
   AddEdge(NativeEdge(source, target, kind));
 }
 
-void NativeFlowGraph::RemoveEdge(const NativeEdge& edge) {
+bool NativeFlowGraph::RemoveEdge(const NativeEdge& edge) {
   VLOG(1) << "remove " << edge;
+  bool found = false;
   auto out_edge_iter = outgoing_edges_.find(edge.source);
   if (out_edge_iter != outgoing_edges_.end()) {
-    out_edge_iter->second.erase(edge);
+    found |= out_edge_iter->second.erase(edge);
     if (out_edge_iter->second.empty()) {
       outgoing_edges_.erase(out_edge_iter);
     }
@@ -49,16 +50,18 @@ void NativeFlowGraph::RemoveEdge(const NativeEdge& edge) {
 
   auto in_edge_iter = incoming_edges_.find(edge.target);
   if (in_edge_iter != incoming_edges_.end()) {
-    in_edge_iter->second.erase(edge);
+    found |= in_edge_iter->second.erase(edge);
     if (in_edge_iter->second.empty()) {
       incoming_edges_.erase(in_edge_iter);
     }
   }
+
+  return found;
 }
 
-void NativeFlowGraph::RemoveEdge(uint64_t source, uint64_t target,
+bool NativeFlowGraph::RemoveEdge(uint64_t source, uint64_t target,
                                  NativeEdgeKind kind) {
-  RemoveEdge(NativeEdge(source, target, kind));
+  return RemoveEdge(NativeEdge(source, target, kind));
 }
 
 bool NativeFlowGraph::resolved() const {
